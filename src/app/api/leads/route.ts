@@ -56,18 +56,32 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const query = Object.fromEntries(searchParams.entries())
 
+    logger.info('GET /api/leads - Raw query params', { query })
+
     const validatedQuery = LeadQuerySchema.parse(query)
+
+    logger.info('GET /api/leads - Validated query', { validatedQuery })
 
     // Obtener leads usando el servicio de Supabase
     const page = validatedQuery.page || 1
     const limit = validatedQuery.limit || 10
 
-    const { leads, total } = await supabaseLeadService.getLeads({
+    const filters = {
       estado: validatedQuery.estado,
       origen: validatedQuery.origen,
       search: validatedQuery.q,
       limit: limit,
       offset: (page - 1) * limit
+    }
+
+    logger.info('GET /api/leads - Calling supabaseLeadService.getLeads', { filters })
+
+    const { leads, total } = await supabaseLeadService.getLeads(filters)
+
+    logger.info('GET /api/leads - Response from service', {
+      leadsCount: leads.length,
+      total,
+      firstLeadEstado: leads[0]?.estado
     })
 
     return NextResponse.json({

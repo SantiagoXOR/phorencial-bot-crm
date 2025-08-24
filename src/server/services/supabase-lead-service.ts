@@ -109,14 +109,17 @@ export class SupabaseLeadService {
       // Filtros
       if (filters.estado) {
         conditions.push(`estado.eq.${filters.estado}`)
+        logger.info('Adding estado filter', { estado: filters.estado })
       }
-      
+
       if (filters.origen) {
         conditions.push(`origen.eq.${filters.origen}`)
+        logger.info('Adding origen filter', { origen: filters.origen })
       }
-      
+
       if (filters.search) {
         conditions.push(`or=(nombre.ilike.*${filters.search}*,telefono.ilike.*${filters.search}*,email.ilike.*${filters.search}*)`)
+        logger.info('Adding search filter', { search: filters.search })
       }
 
       if (conditions.length > 0) {
@@ -134,8 +137,16 @@ export class SupabaseLeadService {
         query += `&offset=${filters.offset}`
       }
 
+      logger.info('Generated Supabase query', { query, filters })
+
       const response = await this.makeRequest(query)
       const leads = await response.json()
+
+      logger.info('Supabase response received', {
+        leadsCount: leads.length,
+        firstLeadEstado: leads[0]?.estado,
+        allEstados: leads.map((l: any) => l.estado)
+      })
 
       // Obtener total count
       const countResponse = await this.makeRequest('Lead?select=count', {
