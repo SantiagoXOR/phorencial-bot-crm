@@ -38,6 +38,7 @@ export default function LeadsContent() {
   const [origen, setOrigen] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalLeads, setTotalLeads] = useState(0)
 
   const fetchLeads = async () => {
     try {
@@ -55,6 +56,7 @@ export default function LeadsContent() {
         const data: LeadsResponse = await response.json()
         setLeads(data.leads)
         setTotalPages(data.totalPages)
+        setTotalLeads(data.total)
       }
     } catch (error) {
       console.error('Error fetching leads:', error)
@@ -177,7 +179,14 @@ export default function LeadsContent() {
       {/* Lista de leads */}
       <Card>
         <CardHeader>
-          <CardTitle>Leads ({leads.length})</CardTitle>
+          <CardTitle>
+            Leads ({totalLeads})
+            {(estado || origen || search) && (
+              <span className="text-sm font-normal text-gray-500 ml-2">
+                (filtrado{estado && ` por estado: ${estado}`}{origen && ` por origen: ${origen}`}{search && ` por búsqueda: "${search}"`})
+              </span>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
