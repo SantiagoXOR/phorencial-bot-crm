@@ -4,12 +4,13 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { 
-  Users, 
-  BarChart3, 
-  Settings, 
+import {
+  Users,
+  BarChart3,
+  Settings,
   LogOut,
-  Menu
+  Menu,
+  Home
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -32,6 +33,7 @@ export default function DashboardLayout({
   }
 
   const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Leads', href: '/leads', icon: Users },
     { name: 'Reportes', href: '/reports', icon: BarChart3 },
     { name: 'Configuración', href: '/settings', icon: Settings },

@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { ArrowLeft, CheckCircle, XCircle, Clock } from 'lucide-react'
+import WhatsAppSender from '@/components/whatsapp/WhatsAppSender'
+import WhatsAppHistory from '@/components/whatsapp/WhatsAppHistory'
 
 interface Lead {
   id: string
@@ -275,6 +277,25 @@ export default function LeadDetailPage() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* WhatsApp Integration */}
+          {lead.telefono && (
+            <>
+              <WhatsAppSender
+                leadId={lead.id}
+                telefono={lead.telefono}
+                onMessageSent={() => {
+                  // Refresh lead data or show success message
+                  window.location.reload()
+                }}
+              />
+
+              <WhatsAppHistory
+                leadId={lead.id}
+                telefono={lead.telefono}
+              />
+            </>
           )}
 
           <Card>

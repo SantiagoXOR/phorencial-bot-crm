@@ -3,14 +3,17 @@ import { z } from 'zod'
 export const LeadCreateSchema = z.object({
   nombre: z.string().min(2, 'Nombre debe tener al menos 2 caracteres'),
   telefono: z.string().min(10, 'Teléfono debe tener al menos 10 dígitos'),
-  email: z.string().email('Email inválido').optional().or(z.literal('')),
-  dni: z.string().optional(),
-  ingresos: z.number().positive('Ingresos deben ser positivos').optional(),
-  zona: z.string().optional(),
-  producto: z.string().optional(),
-  monto: z.number().positive('Monto debe ser positivo').optional(),
-  origen: z.enum(['whatsapp', 'instagram', 'facebook', 'comentario', 'web', 'ads', 'otro']).optional(),
-  utmSource: z.string().optional(),
+  email: z.string().email('Email inválido').optional().or(z.literal('').transform(() => undefined)),
+  dni: z.string().optional().or(z.literal('').transform(() => undefined)),
+  ingresos: z.number().positive('Ingresos deben ser positivos').optional().nullable(),
+  zona: z.string().optional().or(z.literal('').transform(() => undefined)),
+  producto: z.string().optional().or(z.literal('').transform(() => undefined)),
+  monto: z.number().positive('Monto debe ser positivo').optional().nullable(),
+  origen: z.enum(['whatsapp', 'instagram', 'facebook', 'comentario', 'web', 'ads', 'otro']).optional().or(z.literal('').transform(() => undefined)),
+  utmSource: z.string().optional().or(z.literal('').transform(() => undefined)),
+  estado: z.enum(['NUEVO', 'EN_REVISION', 'PREAPROBADO', 'RECHAZADO', 'DOC_PENDIENTE', 'DERIVADO']).optional(),
+  agencia: z.string().optional().or(z.literal('').transform(() => undefined)),
+  notas: z.string().optional().or(z.literal('').transform(() => undefined)),
 })
 
 export const LeadUpdateSchema = z.object({
@@ -38,7 +41,7 @@ export const WhatsAppEventSchema = z.object({
 })
 
 export const ScoringRequestSchema = z.object({
-  leadId: z.string().cuid(),
+  leadId: z.string().uuid(),
 })
 
 export const LeadQuerySchema = z.object({

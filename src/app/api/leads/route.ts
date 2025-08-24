@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { LeadService } from '@/server/services/lead-service'
+import { supabaseLeadService } from '@/server/services/supabase-lead-service'
 import { LeadCreateSchema, LeadQuerySchema } from '@/lib/validators'
 import { checkPermission } from '@/lib/rbac'
 import { logger } from '@/lib/logger'
-
-const leadService = new LeadService()
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,13 +19,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = LeadCreateSchema.parse(body)
 
-    const { lead, isUpdate } = await leadService.upsertLead(validatedData, session.user.id)
+    // Crear lead usando el servicio de Supabase
+    const lead = await supabaseLeadService.createLead(validatedData)
 
     return NextResponse.json({
       id: lead.id,
       estado: lead.estado,
-      isUpdate,
-    }, { status: isUpdate ? 200 : 201 })
+      isUpdate: false,
+    }, { status: 201 })
 
   } catch (error: any) {
     logger.error('Error in POST /api/leads', { error: error.message })
@@ -56,11 +55,27 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const query = Object.fromEntries(searchParams.entries())
-    
-    const validatedQuery = LeadQuerySchema.parse(query)
-    const result = await leadService.getLeads(validatedQuery)
 
-    return NextResponse.json(result)
+    const validatedQuery = LeadQuerySchema.parse(query)
+
+    // Obtener leads usando el servicio de Supabase
+    const page = validatedQuery.page || 1
+    const limit = validatedQuery.limit || 10
+
+    const { leads, total } = await supabaseLeadService.getLeads({
+      estado: validatedQuery.estado,
+      origen: validatedQuery.origen,
+      search: validatedQuery.q,
+      limit: limit,
+      offset: (page - 1) * limit
+    })
+
+    return NextResponse.json({
+      leads,
+      total,
+      page: page,
+      limit: limit,
+    })
 
   } catch (error: any) {
     logger.error('Error in GET /api/leads', { error: error.message })
