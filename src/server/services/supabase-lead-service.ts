@@ -103,93 +103,76 @@ export class SupabaseLeadService {
     offset?: number
   } = {}): Promise<{ leads: Lead[], total: number }> {
     try {
-      let query = 'Lead?select=*'
-      const conditions: string[] = []
+      logger.info('SupabaseLeadService.getLeads called', { filters })
 
-      // Filtros
+      // SOLUCIÓN ALTERNATIVA: Obtener todos los leads y filtrar en memoria
+      // Esto es temporal hasta identificar el problema con la consulta SQL
+      const allLeadsResponse = await this.makeRequest('Lead?select=*&order=createdAt.desc')
+      let allLeads = await allLeadsResponse.json()
+
+      logger.info('All leads fetched from database', {
+        totalLeads: allLeads.length,
+        uniqueEstados: [...new Set(allLeads.map((l: any) => l.estado))],
+        sampleLead: allLeads[0]
+      })
+
+      // Aplicar filtros en memoria
+      let filteredLeads = allLeads
+
       if (filters.estado) {
-        conditions.push(`estado.eq.${filters.estado}`)
-        logger.info('Adding estado filter', { estado: filters.estado })
+        const beforeFilter = filteredLeads.length
+        filteredLeads = filteredLeads.filter((lead: any) => lead.estado === filters.estado)
+        logger.info('Applied estado filter', {
+          filterValue: filters.estado,
+          beforeFilter,
+          afterFilter: filteredLeads.length,
+          matchingLeads: filteredLeads.map((l: any) => ({ nombre: l.nombre, estado: l.estado }))
+        })
       }
 
       if (filters.origen) {
-        conditions.push(`origen.eq.${filters.origen}`)
-        logger.info('Adding origen filter', { origen: filters.origen })
+        const beforeFilter = filteredLeads.length
+        filteredLeads = filteredLeads.filter((lead: any) => lead.origen === filters.origen)
+        logger.info('Applied origen filter', {
+          filterValue: filters.origen,
+          beforeFilter,
+          afterFilter: filteredLeads.length
+        })
       }
 
       if (filters.search) {
-        conditions.push(`or=(nombre.ilike.*${filters.search}*,telefono.ilike.*${filters.search}*,email.ilike.*${filters.search}*)`)
-        logger.info('Adding search filter', { search: filters.search })
+        const beforeFilter = filteredLeads.length
+        const searchLower = filters.search.toLowerCase()
+        filteredLeads = filteredLeads.filter((lead: any) =>
+          lead.nombre?.toLowerCase().includes(searchLower) ||
+          lead.telefono?.toLowerCase().includes(searchLower) ||
+          lead.email?.toLowerCase().includes(searchLower)
+        )
+        logger.info('Applied search filter', {
+          filterValue: filters.search,
+          beforeFilter,
+          afterFilter: filteredLeads.length
+        })
       }
 
-      if (conditions.length > 0) {
-        query += `&${conditions.join('&')}`
-      }
+      const total = filteredLeads.length
 
-      // Ordenar por fecha de creación (más recientes primero)
-      query += '&order=createdAt.desc'
+      // Aplicar paginación
+      const offset = filters.offset || 0
+      const limit = filters.limit || 10
+      const paginatedLeads = filteredLeads.slice(offset, offset + limit)
 
-      // Paginación
-      if (filters.limit) {
-        query += `&limit=${filters.limit}`
-      }
-      if (filters.offset) {
-        query += `&offset=${filters.offset}`
-      }
-
-      logger.info('Generated Supabase query', { query, filters })
-
-      const response = await this.makeRequest(query)
-      const leads = await response.json()
-
-      // Debug: obtener todos los estados únicos si hay filtro
-      if (filters.estado) {
-        try {
-          const allLeadsResponse = await this.makeRequest('Lead?select=estado')
-          const allLeads = await allLeadsResponse.json()
-          const uniqueEstados = [...new Set(allLeads.map((l: any) => l.estado))]
-          logger.info('Debug: All unique estados in database', {
-            uniqueEstados,
-            filterEstado: filters.estado,
-            exactMatch: uniqueEstados.includes(filters.estado)
-          })
-        } catch (debugError) {
-          logger.error('Debug query failed', { debugError })
-        }
-      }
-
-      logger.info('Supabase response received', {
-        leadsCount: leads.length,
-        firstLeadEstado: leads[0]?.estado,
-        allEstados: leads.map((l: any) => l.estado)
+      logger.info('Final result after filtering and pagination', {
+        totalFiltered: total,
+        paginatedCount: paginatedLeads.length,
+        offset,
+        limit
       })
 
-      // Obtener total count con los mismos filtros
-      let countQuery = 'Lead?select=count'
-      if (conditions.length > 0) {
-        countQuery += `&${conditions.join('&')}`
-      }
-
-      logger.info('Generated count query', { countQuery })
-
-      const countResponse = await this.makeRequest(countQuery, {
-        headers: {
-          'Prefer': 'count=exact'
-        }
-      })
-      const countData = await countResponse.json()
-      const total = Array.isArray(countData) && countData[0]?.count ? countData[0].count : leads.length
-
-      logger.info('Final result', {
-        leadsReturned: leads.length,
-        totalCount: total,
-        queryWorked: leads.length < 5 || !filters.estado // Si hay filtro y devuelve menos de 5, funcionó
-      })
-
-      return { leads, total }
+      return { leads: paginatedLeads, total }
 
     } catch (error: any) {
-      logger.error('Error fetching leads', { error: error.message })
+      logger.error('Error fetching leads', { error: error.message, stack: error.stack })
       throw error
     }
   }
