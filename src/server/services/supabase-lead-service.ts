@@ -142,20 +142,49 @@ export class SupabaseLeadService {
       const response = await this.makeRequest(query)
       const leads = await response.json()
 
+      // Debug: obtener todos los estados únicos si hay filtro
+      if (filters.estado) {
+        try {
+          const allLeadsResponse = await this.makeRequest('Lead?select=estado')
+          const allLeads = await allLeadsResponse.json()
+          const uniqueEstados = [...new Set(allLeads.map((l: any) => l.estado))]
+          logger.info('Debug: All unique estados in database', {
+            uniqueEstados,
+            filterEstado: filters.estado,
+            exactMatch: uniqueEstados.includes(filters.estado)
+          })
+        } catch (debugError) {
+          logger.error('Debug query failed', { debugError })
+        }
+      }
+
       logger.info('Supabase response received', {
         leadsCount: leads.length,
         firstLeadEstado: leads[0]?.estado,
         allEstados: leads.map((l: any) => l.estado)
       })
 
-      // Obtener total count
-      const countResponse = await this.makeRequest('Lead?select=count', {
+      // Obtener total count con los mismos filtros
+      let countQuery = 'Lead?select=count'
+      if (conditions.length > 0) {
+        countQuery += `&${conditions.join('&')}`
+      }
+
+      logger.info('Generated count query', { countQuery })
+
+      const countResponse = await this.makeRequest(countQuery, {
         headers: {
           'Prefer': 'count=exact'
         }
       })
       const countData = await countResponse.json()
       const total = Array.isArray(countData) && countData[0]?.count ? countData[0].count : leads.length
+
+      logger.info('Final result', {
+        leadsReturned: leads.length,
+        totalCount: total,
+        queryWorked: leads.length < 5 || !filters.estado // Si hay filtro y devuelve menos de 5, funcionó
+      })
 
       return { leads, total }
 
