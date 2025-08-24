@@ -16,37 +16,75 @@ export class ScoringService {
 
   async evaluateLead(leadId: string, userId?: string): Promise<ScoringResult> {
     try {
+      logger.info('Starting lead evaluation', { leadId, userId })
+
+      // Verificar que el lead existe
       const lead = await this.leadRepo.findById(leadId)
       if (!lead) {
+        logger.error('Lead not found', { leadId })
         throw new Error('Lead not found')
       }
 
-      const rules = await this.ruleRepo.findAll()
+      logger.info('Lead found', { leadId, leadData: lead })
+
+      // Obtener reglas de scoring
+      let rules
+      try {
+        rules = await this.ruleRepo.findAll()
+        logger.info('Rules fetched', { rulesCount: rules.length })
+      } catch (error) {
+        logger.error('Error fetching rules', { error })
+        throw new Error('Error fetching scoring rules')
+      }
+
+      if (!rules || rules.length === 0) {
+        logger.error('No scoring rules found')
+        throw new Error('No scoring rules configured')
+      }
+
       const ruleMap = new Map<string, any>(rules.map((r: any) => [r.key, r.value]))
+      logger.info('Rule map created', { ruleKeys: Array.from(ruleMap.keys()) })
 
       const result = await this.calculateScore(lead, ruleMap)
+      logger.info('Score calculated', { result })
 
-      // Actualizar estado si es preaprobado
-      if (result.decision === 'PREAPROBADO') {
-        await this.leadRepo.update(leadId, { estado: 'PREAPROBADO' })
-      } else if (result.decision === 'RECHAZADO') {
-        await this.leadRepo.update(leadId, { estado: 'RECHAZADO' })
-      } else {
-        await this.leadRepo.update(leadId, { estado: 'EN_REVISION' })
+      // Actualizar estado del lead
+      try {
+        if (result.decision === 'PREAPROBADO') {
+          await this.leadRepo.update(leadId, { estado: 'PREAPROBADO' })
+        } else if (result.decision === 'RECHAZADO') {
+          await this.leadRepo.update(leadId, { estado: 'RECHAZADO' })
+        } else {
+          await this.leadRepo.update(leadId, { estado: 'EN_REVISION' })
+        }
+        logger.info('Lead status updated', { leadId, newStatus: result.decision })
+      } catch (error) {
+        logger.error('Error updating lead status', { error, leadId })
+        // No lanzar error aquí, el scoring ya se calculó
       }
 
       // Registrar evento
-      await this.eventRepo.create({
-        leadId,
-        tipo: 'scoring_evaluated',
-        payload: { userId, result },
-      })
+      try {
+        await this.eventRepo.create({
+          leadId,
+          tipo: 'scoring_evaluated',
+          payload: { userId, result },
+        })
+        logger.info('Scoring event created', { leadId })
+      } catch (error) {
+        logger.error('Error creating scoring event', { error, leadId })
+        // No lanzar error aquí, el scoring ya se calculó
+      }
 
-      logger.info('Lead scoring evaluated', { leadId, result }, { userId, leadId })
-
+      logger.info('Lead scoring evaluation completed', { leadId, result })
       return result
-    } catch (error) {
-      logger.error('Error evaluating lead scoring', { error, leadId }, { userId, leadId })
+
+    } catch (error: any) {
+      logger.error('Error evaluating lead scoring', {
+        error: error.message,
+        stack: error.stack,
+        leadId
+      })
       throw error
     }
   }

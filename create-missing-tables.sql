@@ -7,11 +7,8 @@ IF NOT EXISTS "Event"
 (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid
 (),
-    "leadId" UUID REFERENCES "Lead"
-(id) ON
-DELETE CASCADE,
-    tipo VARCHAR
-NOT NULL,
+    "leadId" UUID,
+    tipo VARCHAR NOT NULL,
     payload JSONB,
     "createdAt" TIMESTAMP
 WITH TIME ZONE DEFAULT NOW

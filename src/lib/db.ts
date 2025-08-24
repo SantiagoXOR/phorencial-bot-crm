@@ -256,7 +256,7 @@ class SupabaseClient {
     const rules = await this.request('/Rule?select=*&order=key.asc')
     return rules.map((rule: any) => ({
       ...rule,
-      value: JSON.parse(rule.value),
+      value: this.parseRuleValue(rule.value),
     }))
   }
 
@@ -266,8 +266,27 @@ class SupabaseClient {
 
     return {
       ...rules[0],
-      value: JSON.parse(rules[0].value),
+      value: this.parseRuleValue(rules[0].value),
     }
+  }
+
+  private parseRuleValue(value: any) {
+    // Si ya es un objeto/array, devolverlo tal como está
+    if (typeof value === 'object' && value !== null) {
+      return value
+    }
+
+    // Si es string, intentar parsearlo como JSON
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value)
+      } catch {
+        // Si no es JSON válido, devolver el string tal como está
+        return value
+      }
+    }
+
+    return value
   }
 
   async upsertRule(key: string, value: any) {
