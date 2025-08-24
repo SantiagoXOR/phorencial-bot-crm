@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  nombre    String
+  dni       String?  @unique
+  telefono  String
+  email     String?
+  ingresos  Int?
+  zona      String?
+  producto  String?
+  monto     Int?
+  origen    String?  // whatsapp, instagram, facebook, comentario, web, ads
+  utmSource String?
+  estado    String   @default("NUEVO") // NUEVO, EN_REVISION, PREAPROBADO, RECHAZADO, DOC_PENDIENTE, DERIVADO
+  agencia   String?
+  notas     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events Event[]
+
+  @@index([telefono])
+  @@index([estado])
+  @@index([createdAt])
+  @@index([origen])
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  leadId    String?
+  tipo      String   // "whatsapp_in","whatsapp_out","estado_cambiado","lead_upsert"
+  payload   String?  // JSON as string
+  createdAt DateTime @default(now())
+  lead      Lead?    @relation(fields: [leadId], references: [id])
+
+  @@index([leadId])
+  @@index([tipo])
+  @@index([createdAt])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  nombre    String
+  email     String   @unique
+  hash      String
+  rol       String   @default("VENDEDOR") // ADMIN, ANALISTA, VENDEDOR
+  createdAt DateTime @default(now())
+}
+
+model Rule {
+  id        String   @id @default(cuid())
+  key       String   @unique // "edadMin","edadMax","minIngreso","zonasPermitidas","requiereBlanco"
+  value     String   // JSON as string
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
