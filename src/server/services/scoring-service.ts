@@ -167,12 +167,22 @@ export class ScoringService {
   private calculateAge(dni: string): number {
     // Extraer fecha de nacimiento del DNI (simplificado)
     // En un caso real, usarías una API de RENAPER
+    if (!dni || dni.length < 8) {
+      return 25 // Edad por defecto si no hay DNI válido
+    }
+
     const year = parseInt(dni.substring(0, 2))
     const currentYear = new Date().getFullYear()
-    
-    // Asumir que si el año es > 50, es del siglo XX
-    const birthYear = year > 50 ? 1900 + year : 2000 + year
-    
-    return currentYear - birthYear
+
+    // Lógica corregida: si el año es <= 25, es del siglo XXI, sino del XX
+    const birthYear = year <= 25 ? 2000 + year : 1900 + year
+    const age = currentYear - birthYear
+
+    // Validar que la edad sea razonable (entre 16 y 100 años)
+    if (age < 16 || age > 100) {
+      return 25 // Edad por defecto si el cálculo no es razonable
+    }
+
+    return age
   }
 }
