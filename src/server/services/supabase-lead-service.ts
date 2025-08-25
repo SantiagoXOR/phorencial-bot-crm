@@ -103,7 +103,7 @@ export class SupabaseLeadService {
     offset?: number
   } = {}): Promise<{ leads: Lead[], total: number }> {
     try {
-      logger.info('SupabaseLeadService.getLeads called', { filters })
+      logger.info('SupabaseLeadService.getLeads called - FIXED VERSION', { filters })
 
       // SOLUCIÓN ALTERNATIVA: Obtener todos los leads y filtrar en memoria
       // Esto es temporal hasta identificar el problema con la consulta SQL
