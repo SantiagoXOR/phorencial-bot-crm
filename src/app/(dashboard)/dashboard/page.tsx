@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { MetricsCard, FormosaMetricsCard, useFormosaMetrics } from '@/components/dashboard/MetricsCard'
+import { FormosaLeadsMetricsCard } from '@/components/dashboard/FormosaMetricsCard'
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts'
 import { cn } from '@/lib/utils'
 import LeadsTrendChart from '@/components/dashboard/LeadsTrendChart'
@@ -62,8 +63,31 @@ interface DashboardMetrics {
 
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
+  const [allLeads, setAllLeads] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Funciones para contadores dinámicos exactos
+  const getEstadoCount = (estadoFilter: string) => {
+    return allLeads.filter(lead => lead.estado === estadoFilter).length
+  }
+
+  // Función para obtener todos los leads para contadores dinámicos
+  const fetchAllLeads = async () => {
+    try {
+      const response = await fetch('/api/leads?limit=1000')
+      if (response.ok) {
+        const data = await response.json()
+        setAllLeads(data.leads || [])
+      }
+    } catch (error) {
+      console.error('Error fetching all leads:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchAllLeads() // Cargar todos los leads para contadores dinámicos
+  }, [])
 
   useEffect(() => {
     fetchDashboardMetrics()
@@ -220,7 +244,7 @@ export default function DashboardPage() {
         {/* Header moderno */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold gradient-text">Dashboard</h1>
+            <h1 className="text-4xl font-bold gradient-text" data-testid="dashboard-title">Dashboard</h1>
             <p className="text-muted-foreground mt-2">
               Resumen de actividad y métricas principales de Formosa
             </p>
@@ -230,7 +254,7 @@ export default function DashboardPage() {
               <Download className="h-4 w-4 mr-2" />
               Exportar
             </Button>
-            <Button asChild className="gradient-primary text-white hover-lift">
+            <Button asChild className="gradient-primary text-white hover-lift" data-testid="new-lead-button">
               <Link href="/leads/new">
                 <Plus className="w-4 h-4 mr-2" />
                 Nuevo Lead
@@ -239,8 +263,19 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Métricas específicas de Formosa */}
+        <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <FormosaLeadsMetricsCard
+            totalLeads={allLeads.length}
+            newLeads={getEstadoCount('NUEVO')}
+            preapproved={getEstadoCount('PREAPROBADO')}
+            rejected={getEstadoCount('RECHAZADO')}
+            className="mb-6"
+          />
+        </div>
+
         {/* Métricas principales con diseño moderno */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in" data-testid="metrics-cards">
           <FormosaMetricsCard
             type="totalLeads"
             value={formosaMetrics.totalLeads.value}
@@ -275,7 +310,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Gráficos modernos */}
-        <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+        <div className="animate-fade-in" style={{ animationDelay: '0.4s' }} data-testid="dashboard-charts">
           <DashboardCharts
             metrics={{
               trendData: metrics.trendData.map(item => ({

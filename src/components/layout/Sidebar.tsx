@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { signOut, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -71,6 +72,7 @@ export function Sidebar({ className }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const pathname = usePathname()
+  const { data: session } = useSession()
 
   const toggleExpanded = (itemName: string) => {
     setExpandedItems(prev => 
@@ -111,7 +113,7 @@ export function Sidebar({ className }: SidebarProps) {
         "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0",
         isOpen ? "translate-x-0" : "-translate-x-full",
         className
-      )}>
+      )} data-testid="sidebar">
         {/* Gradient background */}
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900" />
         
@@ -120,7 +122,7 @@ export function Sidebar({ className }: SidebarProps) {
         
         <div className="relative flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-center h-16 px-4 border-b border-white/10">
+          <div className="flex items-center justify-center h-16 px-4 border-b border-white/10" data-testid="sidebar-logo">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">P</span>
@@ -232,10 +234,10 @@ export function Sidebar({ className }: SidebarProps) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white truncate">
-                    Usuario Admin
+                    {session?.user?.name || 'Usuario'}
                   </p>
                   <p className="text-xs text-gray-400 truncate">
-                    admin@phorencial.com
+                    {session?.user?.email || 'email@ejemplo.com'}
                   </p>
                 </div>
               </div>
@@ -244,6 +246,8 @@ export function Sidebar({ className }: SidebarProps) {
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start text-gray-300 hover:text-white hover:bg-red-500/20"
+                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+                data-testid="logout-button"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 <span>Cerrar Sesión</span>

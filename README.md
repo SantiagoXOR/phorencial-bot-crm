@@ -412,3 +412,35 @@ Este proyecto es el resultado de una **migración selectiva exitosa** que combin
 - **Páginas nuevas** (Documents, Settings)
 
 **Resultado**: Un CRM moderno, funcional y específicamente diseñado para las necesidades de Formosa. 🚀
+
+---
+
+## 📚 Documentación Técnica Completa
+
+### **🔄 Migración Selectiva**
+
+- [`docs/analisis-comparativo-formosa-leads-hub.md`](docs/analisis-comparativo-formosa-leads-hub.md) - Análisis comparativo completo
+- [`docs/plan-migracion-selectiva.md`](docs/plan-migracion-selectiva.md) - Plan de migración ejecutado
+- [`docs/migracion-completada-resumen.md`](docs/migracion-completada-resumen.md) - Resumen de migración exitosa
+
+### **🧪 Tests End-to-End (1,078 tests)**
+
+- [`docs/plan-implementacion-tests.md`](docs/plan-implementacion-tests.md) - Plan para 1,078 tests E2E
+- [`docs/seguimiento-implementacion.md`](docs/seguimiento-implementacion.md) - Tracking de progreso
+- [`docs/arquitectura-implementacion.md`](docs/arquitectura-implementacion.md) - Arquitectura técnica
+- [`tests/README.md`](tests/README.md) - Guía completa de tests
+
+### **🏗️ Arquitectura y Desarrollo**
+
+- [`FRONTEND_SETUP.md`](FRONTEND_SETUP.md) - Setup del frontend
+- [`docs/activepieces.md`](docs/activepieces.md) - Integración con Activepieces
+- [`playwright.config.ts`](playwright.config.ts) - Configuración de tests
+
+### **📊 Estado Actual**
+
+- ✅ **Migración selectiva completada** - UI moderna + funcionalidad preservada
+- ✅ **1000+ leads reales de Formosa** - Datos específicos mantenidos
+- ✅ **Suite de tests E2E implementada** - 1,078 tests en 7 navegadores
+- 🔄 **Implementación en progreso** - Plan de 3 fases para tests exitosos
+
+**¡El CRM Phorencial está evolucionando hacia el sistema más robusto y validado de gestión de leads!** 🎯

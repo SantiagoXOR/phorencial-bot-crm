@@ -87,7 +87,7 @@ export function DashboardCharts({ metrics, className }: DashboardChartsProps) {
   }
 
   return (
-    <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-6", className)}>
+    <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-6", className)} data-testid="dashboard-charts">
       {/* Tendencia de Leads */}
       {metrics.trendData && (
         <Card className="relative overflow-hidden">

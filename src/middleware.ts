@@ -6,13 +6,13 @@ export default withAuth(
     const token = req.nextauth.token
     const isAuth = !!token
     const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
-    const isProtectedPage = ['/leads', '/reports', '/settings'].some(path =>
+    const isProtectedPage = ['/dashboard', '/leads', '/reports', '/settings'].some(path =>
       req.nextUrl.pathname.startsWith(path)
     )
 
-    // Si está autenticado y trata de acceder a auth, redirigir a leads
+    // Si está autenticado y trata de acceder a auth, redirigir a dashboard
     if (isAuthPage && isAuth) {
-      return NextResponse.redirect(new URL('/leads', req.url))
+      return NextResponse.redirect(new URL('/dashboard', req.url))
     }
 
     // Si no está autenticado y trata de acceder a páginas protegidas
@@ -36,6 +36,7 @@ export default withAuth(
 
 export const config = {
   matcher: [
+    '/dashboard/:path*',
     '/leads/:path*',
     '/reports/:path*',
     '/settings/:path*',

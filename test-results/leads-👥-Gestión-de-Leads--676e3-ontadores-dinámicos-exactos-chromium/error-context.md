@@ -1,0 +1,61 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - generic [ref=e11]: P
+        - generic [ref=e12]:
+          - heading "Phorencial" [level=1] [ref=e13]
+          - paragraph [ref=e14]: CRM Formosa
+      - navigation [ref=e15]:
+        - link "Dashboard" [ref=e17] [cursor=pointer]:
+          - /url: /dashboard
+          - generic [ref=e18] [cursor=pointer]:
+            - img [ref=e19] [cursor=pointer]
+            - generic [ref=e22] [cursor=pointer]: Dashboard
+        - link "Leads 1,247" [ref=e24] [cursor=pointer]:
+          - /url: /leads
+          - generic [ref=e25] [cursor=pointer]:
+            - img [ref=e26] [cursor=pointer]
+            - generic [ref=e31] [cursor=pointer]: Leads
+          - generic [ref=e33] [cursor=pointer]: 1,247
+        - link "Documents 12" [ref=e35] [cursor=pointer]:
+          - /url: /documents
+          - generic [ref=e36] [cursor=pointer]:
+            - img [ref=e37] [cursor=pointer]
+            - generic [ref=e40] [cursor=pointer]: Documents
+          - generic [ref=e42] [cursor=pointer]: "12"
+        - link "Reportes" [ref=e44] [cursor=pointer]:
+          - /url: /reports
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e46] [cursor=pointer]
+            - generic [ref=e48] [cursor=pointer]: Reportes
+        - link "Settings" [ref=e50] [cursor=pointer]:
+          - /url: /settings
+          - generic [ref=e51] [cursor=pointer]:
+            - img [ref=e52] [cursor=pointer]
+            - generic [ref=e55] [cursor=pointer]: Settings
+        - link "Admin" [ref=e57] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e58] [cursor=pointer]:
+            - img [ref=e59] [cursor=pointer]
+            - generic [ref=e61] [cursor=pointer]: Admin
+      - generic [ref=e62]:
+        - button "Notificaciones 3" [ref=e64] [cursor=pointer]:
+          - img
+          - generic [ref=e65] [cursor=pointer]: Notificaciones
+          - generic [ref=e66] [cursor=pointer]: "3"
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - generic [ref=e70]: U
+            - generic [ref=e71]:
+              - paragraph [ref=e72]: Admin
+              - paragraph [ref=e73]: admin@phorencial.com
+          - button "Cerrar Sesión" [ref=e74] [cursor=pointer]:
+            - img
+            - generic [ref=e75] [cursor=pointer]: Cerrar Sesión
+    - main [ref=e77]
+```

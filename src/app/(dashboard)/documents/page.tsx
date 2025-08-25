@@ -187,12 +187,12 @@ export default function DocumentsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold gradient-text">Documentos</h1>
+            <h1 className="text-4xl font-bold gradient-text" data-testid="documents-title">Documentos</h1>
             <p className="text-muted-foreground mt-2">
               Gestión de documentos de leads de Formosa
             </p>
           </div>
-          <Button className="gradient-primary text-white hover-lift">
+          <Button className="gradient-primary text-white hover-lift" data-testid="upload-button">
             <Plus className="h-4 w-4 mr-2" />
             Subir Documento
           </Button>
@@ -311,7 +311,7 @@ export default function DocumentsPage() {
         </Card>
 
         {/* Lista de documentos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="documents-grid">
           {filteredDocuments.map((doc, index) => {
             const categoryInfo = getCategoryInfo(doc.category)
             const FileIcon = getFileIcon(doc.fileType)

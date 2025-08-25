@@ -32,6 +32,7 @@ interface LeadsResponse {
 export default function LeadsPage() {
   const { data: session } = useSession()
   const [leads, setLeads] = useState<Lead[]>([])
+  const [allLeads, setAllLeads] = useState<Lead[]>([]) // Para contadores dinámicos exactos
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [estado, setEstado] = useState('')
@@ -39,6 +40,19 @@ export default function LeadsPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalLeads, setTotalLeads] = useState(0)
+
+  // Función para obtener todos los leads para contadores dinámicos
+  const fetchAllLeads = async () => {
+    try {
+      const response = await fetch('/api/leads?limit=1000') // Obtener todos para contadores
+      if (response.ok) {
+        const data: LeadsResponse = await response.json()
+        setAllLeads(data.leads)
+      }
+    } catch (error) {
+      console.error('Error fetching all leads:', error)
+    }
+  }
 
   const fetchLeads = async () => {
     try {
@@ -68,6 +82,57 @@ export default function LeadsPage() {
   useEffect(() => {
     fetchLeads()
   }, [page, search, estado, origen])
+
+  useEffect(() => {
+    fetchAllLeads() // Cargar todos los leads para contadores dinámicos
+  }, [])
+
+  // Funciones para contadores dinámicos exactos
+  const getEstadoCount = (estadoFilter: string) => {
+    return allLeads.filter(lead => lead.estado === estadoFilter).length
+  }
+
+  const getOrigenCount = (origenFilter: string) => {
+    return allLeads.filter(lead => lead.origen === origenFilter).length
+  }
+
+  const getFilteredCount = () => {
+    let filtered = allLeads
+
+    if (estado) {
+      filtered = filtered.filter(lead => lead.estado === estado)
+    }
+    if (origen) {
+      filtered = filtered.filter(lead => lead.origen === origen)
+    }
+    if (search) {
+      const searchLower = search.toLowerCase()
+      filtered = filtered.filter(lead =>
+        lead.nombre?.toLowerCase().includes(searchLower) ||
+        lead.telefono?.toLowerCase().includes(searchLower) ||
+        lead.email?.toLowerCase().includes(searchLower)
+      )
+    }
+
+    return filtered.length
+  }
+
+  // Función para generar título con contadores dinámicos exactos
+  const getPageTitle = () => {
+    const totalCount = allLeads.length
+    const filteredCount = getFilteredCount()
+
+    if (!estado && !origen && !search) {
+      return `Leads de Formosa (${totalCount})`
+    }
+
+    let filterText = ''
+    if (estado) filterText += ` por estado: ${estado}`
+    if (origen) filterText += ` por origen: ${origen}`
+    if (search) filterText += ` por búsqueda: "${search}"`
+
+    return `Leads (${filteredCount})(filtrado${filterText})`
+  }
 
   const getEstadoBadge = (estado: string) => {
     const badgeClasses = {
@@ -140,7 +205,7 @@ export default function LeadsPage() {
           <div>
             <h1 className="text-4xl font-bold gradient-text">Gestión de Leads</h1>
             <p className="text-muted-foreground mt-2">
-              Administración de leads de Formosa - Total: {totalLeads}
+              {getPageTitle()}
             </p>
           </div>
           <div className="flex items-center space-x-3">
@@ -166,7 +231,7 @@ export default function LeadsPage() {
                   <Users className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{totalLeads}</p>
+                  <p className="text-2xl font-bold">{allLeads.length}</p>
                   <p className="text-sm text-muted-foreground">Total Leads</p>
                 </div>
               </div>
@@ -181,7 +246,7 @@ export default function LeadsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {leads.filter(l => l.estado === 'PREAPROBADO').length}
+                    {getEstadoCount('PREAPROBADO')}
                   </p>
                   <p className="text-sm text-muted-foreground">Preaprobados</p>
                 </div>
@@ -197,7 +262,7 @@ export default function LeadsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {leads.filter(l => l.estado === 'EN_REVISION').length}
+                    {getEstadoCount('EN_REVISION')}
                   </p>
                   <p className="text-sm text-muted-foreground">En Revisión</p>
                 </div>
@@ -213,7 +278,7 @@ export default function LeadsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {leads.filter(l => l.estado === 'NUEVO').length}
+                    {getEstadoCount('NUEVO')}
                   </p>
                   <p className="text-sm text-muted-foreground">Nuevos</p>
                 </div>
@@ -222,9 +287,38 @@ export default function LeadsPage() {
           </Card>
         </div>
 
-        {/* Filtros mejorados */}
+        {/* Filtros rápidos con badges */}
         <Card className="formosa-card">
           <CardContent className="p-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-3">Filtros Rápidos</h3>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setEstado('')}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                    !estado
+                      ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Todos ({allLeads.length})
+                </button>
+                {['NUEVO', 'EN_REVISION', 'PREAPROBADO', 'RECHAZADO', 'DOC_PENDIENTE', 'DERIVADO'].map((est) => (
+                  <button
+                    key={est}
+                    onClick={() => setEstado(est)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                      estado === est
+                        ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {est.replace('_', ' ')} ({getEstadoCount(est)})
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -240,13 +334,13 @@ export default function LeadsPage() {
               onChange={(e) => setEstado(e.target.value)}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
-              <option value="">Todos los estados</option>
-              <option value="NUEVO">Nuevo</option>
-              <option value="EN_REVISION">En Revisión</option>
-              <option value="PREAPROBADO">Preaprobado</option>
-              <option value="RECHAZADO">Rechazado</option>
-              <option value="DOC_PENDIENTE">Doc. Pendiente</option>
-              <option value="DERIVADO">Derivado</option>
+              <option value="">Todos los estados ({allLeads.length})</option>
+              <option value="NUEVO">Nuevo ({getEstadoCount('NUEVO')})</option>
+              <option value="EN_REVISION">En Revisión ({getEstadoCount('EN_REVISION')})</option>
+              <option value="PREAPROBADO">Preaprobado ({getEstadoCount('PREAPROBADO')})</option>
+              <option value="RECHAZADO">Rechazado ({getEstadoCount('RECHAZADO')})</option>
+              <option value="DOC_PENDIENTE">Doc. Pendiente ({getEstadoCount('DOC_PENDIENTE')})</option>
+              <option value="DERIVADO">Derivado ({getEstadoCount('DERIVADO')})</option>
             </select>
             <select
               value={origen}
@@ -270,12 +364,29 @@ export default function LeadsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-xl font-semibold">
-                  Leads de Formosa ({totalLeads})
+                  {getPageTitle()}
                 </CardTitle>
                 {(estado || origen || search) && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Filtrado{estado && ` por estado: ${estado}`}{origen && ` por origen: ${origen}`}{search && ` por búsqueda: "${search}"`}
-                  </p>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      Filtros aplicados
+                    </Badge>
+                    {estado && (
+                      <Badge className="formosa-badge-nuevo">
+                        Estado: {estado}
+                      </Badge>
+                    )}
+                    {origen && (
+                      <Badge variant="outline" className="bg-gray-50">
+                        Origen: {origen}
+                      </Badge>
+                    )}
+                    {search && (
+                      <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
+                        Búsqueda: "{search}"
+                      </Badge>
+                    )}
+                  </div>
                 )}
               </div>
               <Badge variant="outline" className="bg-blue-50 text-blue-700">

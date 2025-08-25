@@ -343,7 +343,7 @@ export default function SettingsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold gradient-text">Configuración</h1>
+            <h1 className="text-4xl font-bold gradient-text" data-testid="settings-title">Configuración</h1>
             <p className="text-muted-foreground mt-2">
               Configuración del sistema CRM Phorencial
             </p>

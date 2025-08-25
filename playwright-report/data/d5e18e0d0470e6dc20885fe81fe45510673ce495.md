@@ -1,0 +1,468 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - generic [ref=e11]: P
+        - generic [ref=e12]:
+          - heading "Phorencial" [level=1] [ref=e13]
+          - paragraph [ref=e14]: CRM Formosa
+      - navigation [ref=e15]:
+        - link "Dashboard" [ref=e17] [cursor=pointer]:
+          - /url: /dashboard
+          - generic [ref=e18] [cursor=pointer]:
+            - img [ref=e19] [cursor=pointer]
+            - generic [ref=e22] [cursor=pointer]: Dashboard
+        - link "Leads 1,247" [active] [ref=e24] [cursor=pointer]:
+          - /url: /leads
+          - generic [ref=e25] [cursor=pointer]:
+            - img [ref=e26] [cursor=pointer]
+            - generic [ref=e31] [cursor=pointer]: Leads
+          - generic [ref=e33] [cursor=pointer]: 1,247
+        - link "Documents 12" [ref=e35] [cursor=pointer]:
+          - /url: /documents
+          - generic [ref=e36] [cursor=pointer]:
+            - img [ref=e37] [cursor=pointer]
+            - generic [ref=e40] [cursor=pointer]: Documents
+          - generic [ref=e42] [cursor=pointer]: "12"
+        - link "Reportes" [ref=e44] [cursor=pointer]:
+          - /url: /reports
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e46] [cursor=pointer]
+            - generic [ref=e48] [cursor=pointer]: Reportes
+        - link "Settings" [ref=e50] [cursor=pointer]:
+          - /url: /settings
+          - generic [ref=e51] [cursor=pointer]:
+            - img [ref=e52] [cursor=pointer]
+            - generic [ref=e55] [cursor=pointer]: Settings
+        - link "Admin" [ref=e57] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e58] [cursor=pointer]:
+            - img [ref=e59] [cursor=pointer]
+            - generic [ref=e61] [cursor=pointer]: Admin
+      - generic [ref=e62]:
+        - button "Notificaciones 3" [ref=e64] [cursor=pointer]:
+          - img
+          - generic [ref=e65] [cursor=pointer]: Notificaciones
+          - generic [ref=e66] [cursor=pointer]: "3"
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - generic [ref=e70]: U
+            - generic [ref=e71]:
+              - paragraph [ref=e72]: Admin
+              - paragraph [ref=e73]: admin@phorencial.com
+          - button "Cerrar Sesión" [ref=e74] [cursor=pointer]:
+            - img
+            - generic [ref=e75] [cursor=pointer]: Cerrar Sesión
+    - main [ref=e77]:
+      - generic [ref=e79]:
+        - generic [ref=e80]:
+          - generic [ref=e81]:
+            - heading "Dashboard" [level=1] [ref=e82]
+            - paragraph [ref=e83]: Resumen de actividad y métricas principales de Formosa
+          - generic [ref=e84]:
+            - button "Exportar" [ref=e85] [cursor=pointer]:
+              - img
+              - text: Exportar
+            - link "Nuevo Lead" [ref=e86] [cursor=pointer]:
+              - /url: /leads/new
+              - img
+              - text: Nuevo Lead
+        - generic [ref=e88]:
+          - generic [ref=e89] [cursor=pointer]:
+            - heading "Total Leads Formosa" [level=3] [ref=e91] [cursor=pointer]
+            - generic [ref=e92] [cursor=pointer]:
+              - generic [ref=e93] [cursor=pointer]:
+                - generic [ref=e94] [cursor=pointer]:
+                  - generic [ref=e95] [cursor=pointer]: "100"
+                  - paragraph [ref=e96] [cursor=pointer]: Leads registrados
+                - generic [ref=e97] [cursor=pointer]: Activo
+              - generic [ref=e98] [cursor=pointer]:
+                - img [ref=e99] [cursor=pointer]
+                - generic [ref=e102] [cursor=pointer]: +12.5%
+                - generic [ref=e103] [cursor=pointer]: vs mes anterior
+          - generic [ref=e104] [cursor=pointer]:
+            - heading "Nuevos Leads" [level=3] [ref=e106] [cursor=pointer]
+            - generic [ref=e107] [cursor=pointer]:
+              - generic [ref=e109] [cursor=pointer]:
+                - generic [ref=e110] [cursor=pointer]: "100"
+                - paragraph [ref=e111] [cursor=pointer]: Pendientes de revisión
+              - generic [ref=e112] [cursor=pointer]:
+                - img [ref=e113] [cursor=pointer]
+                - generic [ref=e116] [cursor=pointer]: +8.2%
+                - generic [ref=e117] [cursor=pointer]: esta semana
+          - generic [ref=e118] [cursor=pointer]:
+            - heading "Preaprobados" [level=3] [ref=e120] [cursor=pointer]
+            - generic [ref=e121] [cursor=pointer]:
+              - generic [ref=e122] [cursor=pointer]:
+                - generic [ref=e123] [cursor=pointer]:
+                  - generic [ref=e124] [cursor=pointer]: "0"
+                  - paragraph [ref=e125] [cursor=pointer]: "Tasa: 0.0%"
+                - generic [ref=e126] [cursor=pointer]: Meta
+              - generic [ref=e127] [cursor=pointer]:
+                - img [ref=e128] [cursor=pointer]
+                - generic [ref=e131] [cursor=pointer]: +15.3%
+                - generic [ref=e132] [cursor=pointer]: vs mes anterior
+          - generic [ref=e133] [cursor=pointer]:
+            - heading "Rechazados" [level=3] [ref=e135] [cursor=pointer]
+            - generic [ref=e136] [cursor=pointer]:
+              - generic [ref=e138] [cursor=pointer]:
+                - generic [ref=e139] [cursor=pointer]: "0"
+                - paragraph [ref=e140] [cursor=pointer]: "Tasa: 0.0%"
+              - generic [ref=e141] [cursor=pointer]:
+                - img [ref=e142] [cursor=pointer]
+                - generic [ref=e145] [cursor=pointer]: "-2.1%"
+                - generic [ref=e146] [cursor=pointer]: vs mes anterior
+        - generic [ref=e147]:
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - heading "Total Leads" [level=3] [ref=e153]
+              - img [ref=e155]
+            - generic [ref=e160]:
+              - generic [ref=e161]:
+                - generic [ref=e162]: 1.0K
+                - paragraph [ref=e163]: 1000 este mes
+              - generic [ref=e164]:
+                - generic [ref=e165]:
+                  - img [ref=e166]
+                  - generic [ref=e169]: 12.5%
+                - generic [ref=e170]: vs mes anterior
+          - generic [ref=e174]:
+            - generic [ref=e175]:
+              - heading "Tasa Conversión" [level=3] [ref=e176]
+              - img [ref=e178]
+            - generic [ref=e181]:
+              - generic [ref=e182]:
+                - generic [ref=e183]: 0.8%
+                - paragraph [ref=e184]: Promedio mensual
+              - generic [ref=e185]:
+                - generic [ref=e186]:
+                  - img [ref=e187]
+                  - generic [ref=e190]: 2.1%
+                - generic [ref=e191]: vs mes anterior
+          - generic [ref=e195]:
+            - generic [ref=e196]:
+              - heading "Ingresos Proyectados" [level=3] [ref=e197]
+              - img [ref=e199]
+            - generic [ref=e201]:
+              - generic [ref=e202]:
+                - generic [ref=e203]: $ 215.400.000
+                - paragraph [ref=e204]: Este mes
+              - generic [ref=e205]:
+                - generic [ref=e206]:
+                  - img [ref=e207]
+                  - generic [ref=e210]: 8.3%
+                - generic [ref=e211]: vs proyección
+          - generic [ref=e215]:
+            - generic [ref=e216]:
+              - heading "Preaprobados" [level=3] [ref=e217]
+              - img [ref=e219]
+            - generic [ref=e223]:
+              - generic [ref=e224]:
+                - generic [ref=e225]: "8"
+                - paragraph [ref=e226]: Listos para cierre
+              - generic [ref=e227]:
+                - generic [ref=e228]:
+                  - img [ref=e229]
+                  - generic [ref=e232]: 15.2%
+                - generic [ref=e233]: vs mes anterior
+        - generic [ref=e235]:
+          - generic [ref=e238]:
+            - generic [ref=e239]:
+              - heading "Tendencia de Leads Últimos 6 meses" [level=3] [ref=e240]:
+                - generic [ref=e241]: Tendencia de Leads
+                - generic [ref=e242]: Últimos 6 meses
+              - paragraph [ref=e243]: Evolución de leads y conversiones por mes
+            - generic [ref=e246]:
+              - list [ref=e248]:
+                - listitem [ref=e249]:
+                  - img "Conversiones legend icon" [ref=e250]
+                  - generic [ref=e252]: Conversiones
+                - listitem [ref=e253]:
+                  - img "Leads legend icon" [ref=e254]
+                  - generic [ref=e256]: Leads
+              - application [ref=e257]:
+                - generic [ref=e262]:
+                  - generic [ref=e265]: 2025-08-19
+                  - generic [ref=e268]: 2025-08-20
+                  - generic [ref=e271]: 2025-08-21
+                  - generic [ref=e274]: 2025-08-22
+                  - generic [ref=e277]: 2025-08-23
+                  - generic [ref=e280]: 2025-08-24
+                  - generic [ref=e283]: 2025-08-25
+                - generic [ref=e285]:
+                  - generic [ref=e288]: "0"
+                  - generic [ref=e291]: "250"
+                  - generic [ref=e294]: "500"
+                  - generic [ref=e297]: "750"
+                  - generic [ref=e300]: "1000"
+          - generic [ref=e311]:
+            - generic [ref=e312]:
+              - heading "Distribución por Estado 1000 total" [level=3] [ref=e313]:
+                - generic [ref=e314]: Distribución por Estado
+                - generic [ref=e315]: 1000 total
+              - paragraph [ref=e316]: Leads organizados por estado actual
+            - generic [ref=e318]:
+              - application [ref=e322]
+              - generic [ref=e333]:
+                - generic [ref=e334]:
+                  - generic [ref=e337]: NUEVO
+                  - generic [ref=e338]: "945"
+                - generic [ref=e339]:
+                  - generic [ref=e342]: RECHAZADO
+                  - generic [ref=e343]: "34"
+                - generic [ref=e344]:
+                  - generic [ref=e347]: PREAPROBADO
+                  - generic [ref=e348]: "8"
+                - generic [ref=e349]:
+                  - generic [ref=e352]: DOC_PENDIENTE
+                  - generic [ref=e353]: "13"
+        - generic [ref=e354]:
+          - generic [ref=e356]:
+            - generic [ref=e357]:
+              - heading "Leads Recientes" [level=3] [ref=e358]
+              - paragraph [ref=e359]: Últimos leads ingresados desde Formosa
+            - link "Ver todos →" [ref=e360] [cursor=pointer]:
+              - /url: /leads
+          - generic [ref=e362]:
+            - generic [ref=e363]:
+              - generic [ref=e365]:
+                - img [ref=e367]
+                - generic [ref=e372]:
+                  - paragraph [ref=e373]: Nombre
+                  - generic [ref=e374]:
+                    - generic [ref=e375]:
+                      - img [ref=e376]
+                      - text: "+54"
+                    - generic [ref=e378]:
+                      - img [ref=e379]
+                      - text: nombre@email.com
+                    - generic [ref=e382]:
+                      - img [ref=e383]
+                      - text: 24/8, 11:48 p. m.
+              - generic [ref=e385]:
+                - generic [ref=e386]: excel
+                - generic [ref=e387]: NUEVO
+                - link "Ver" [ref=e388] [cursor=pointer]:
+                  - /url: /leads/5eeb04f2-712f-4e57-9982-256e6936f94d
+            - generic [ref=e389]:
+              - generic [ref=e391]:
+                - img [ref=e393]
+                - generic [ref=e398]:
+                  - paragraph [ref=e399]: Nombre
+                  - generic [ref=e400]:
+                    - generic [ref=e401]:
+                      - img [ref=e402]
+                      - text: "+54"
+                    - generic [ref=e404]:
+                      - img [ref=e405]
+                      - text: nombre@email.com
+                    - generic [ref=e408]:
+                      - img [ref=e409]
+                      - text: 24/8, 11:48 p. m.
+              - generic [ref=e411]:
+                - generic [ref=e412]: excel
+                - generic [ref=e413]: NUEVO
+                - link "Ver" [ref=e414] [cursor=pointer]:
+                  - /url: /leads/17a19141-25d2-407d-bc57-68d12df89ec7
+            - generic [ref=e415]:
+              - generic [ref=e417]:
+                - img [ref=e419]
+                - generic [ref=e424]:
+                  - paragraph [ref=e425]: Nombre
+                  - generic [ref=e426]:
+                    - generic [ref=e427]:
+                      - img [ref=e428]
+                      - text: "+54"
+                    - generic [ref=e430]:
+                      - img [ref=e431]
+                      - text: nombre@email.com
+                    - generic [ref=e434]:
+                      - img [ref=e435]
+                      - text: 24/8, 11:48 p. m.
+              - generic [ref=e437]:
+                - generic [ref=e438]: excel
+                - generic [ref=e439]: NUEVO
+                - link "Ver" [ref=e440] [cursor=pointer]:
+                  - /url: /leads/bdb1e0ed-efa2-4d3b-80c4-c3fb538a4e1c
+            - generic [ref=e441]:
+              - generic [ref=e443]:
+                - img [ref=e445]
+                - generic [ref=e450]:
+                  - paragraph [ref=e451]: Nombre
+                  - generic [ref=e452]:
+                    - generic [ref=e453]:
+                      - img [ref=e454]
+                      - text: "+54"
+                    - generic [ref=e456]:
+                      - img [ref=e457]
+                      - text: nombre@email.com
+                    - generic [ref=e460]:
+                      - img [ref=e461]
+                      - text: 24/8, 11:48 p. m.
+              - generic [ref=e463]:
+                - generic [ref=e464]: excel
+                - generic [ref=e465]: NUEVO
+                - link "Ver" [ref=e466] [cursor=pointer]:
+                  - /url: /leads/620a7edf-9bfa-4809-8187-0827a231c675
+            - generic [ref=e467]:
+              - generic [ref=e469]:
+                - img [ref=e471]
+                - generic [ref=e476]:
+                  - paragraph [ref=e477]: Nombre
+                  - generic [ref=e478]:
+                    - generic [ref=e479]:
+                      - img [ref=e480]
+                      - text: "+54"
+                    - generic [ref=e482]:
+                      - img [ref=e483]
+                      - text: nombre@email.com
+                    - generic [ref=e486]:
+                      - img [ref=e487]
+                      - text: 24/8, 11:48 p. m.
+              - generic [ref=e489]:
+                - generic [ref=e490]: excel
+                - generic [ref=e491]: NUEVO
+                - link "Ver" [ref=e492] [cursor=pointer]:
+                  - /url: /leads/aeb2cc04-17f6-4fae-a70e-0cfa46d6fec6
+            - generic [ref=e493]:
+              - generic [ref=e495]:
+                - img [ref=e497]
+                - generic [ref=e502]:
+                  - paragraph [ref=e503]: Nombre
+                  - generic [ref=e504]:
+                    - generic [ref=e505]:
+                      - img [ref=e506]
+                      - text: "+54"
+                    - generic [ref=e508]:
+                      - img [ref=e509]
+                      - text: nombre@email.com
+                    - generic [ref=e512]:
+                      - img [ref=e513]
+                      - text: 24/8, 11:48 p. m.
+              - generic [ref=e515]:
+                - generic [ref=e516]: excel
+                - generic [ref=e517]: NUEVO
+                - link "Ver" [ref=e518] [cursor=pointer]:
+                  - /url: /leads/b89c7111-e469-44b4-b5cd-46fa610c11c7
+            - generic [ref=e519]:
+              - generic [ref=e521]:
+                - img [ref=e523]
+                - generic [ref=e528]:
+                  - paragraph [ref=e529]: Nombre
+                  - generic [ref=e530]:
+                    - generic [ref=e531]:
+                      - img [ref=e532]
+                      - text: "+54"
+                    - generic [ref=e534]:
+                      - img [ref=e535]
+                      - text: nombre@email.com
+                    - generic [ref=e538]:
+                      - img [ref=e539]
+                      - text: 24/8, 11:48 p. m.
+              - generic [ref=e541]:
+                - generic [ref=e542]: excel
+                - generic [ref=e543]: NUEVO
+                - link "Ver" [ref=e544] [cursor=pointer]:
+                  - /url: /leads/854d932d-0267-4781-af7f-2cb01cf47a95
+            - generic [ref=e545]:
+              - generic [ref=e547]:
+                - img [ref=e549]
+                - generic [ref=e554]:
+                  - paragraph [ref=e555]: Nombre
+                  - generic [ref=e556]:
+                    - generic [ref=e557]:
+                      - img [ref=e558]
+                      - text: "+54"
+                    - generic [ref=e560]:
+                      - img [ref=e561]
+                      - text: nombre@email.com
+                    - generic [ref=e564]:
+                      - img [ref=e565]
+                      - text: 24/8, 11:48 p. m.
+              - generic [ref=e567]:
+                - generic [ref=e568]: excel
+                - generic [ref=e569]: NUEVO
+                - link "Ver" [ref=e570] [cursor=pointer]:
+                  - /url: /leads/9a605723-1a15-4d13-a78e-9a49adf02318
+            - generic [ref=e571]:
+              - generic [ref=e573]:
+                - img [ref=e575]
+                - generic [ref=e580]:
+                  - paragraph [ref=e581]: Nombre
+                  - generic [ref=e582]:
+                    - generic [ref=e583]:
+                      - img [ref=e584]
+                      - text: "+54"
+                    - generic [ref=e586]:
+                      - img [ref=e587]
+                      - text: nombre@email.com
+                    - generic [ref=e590]:
+                      - img [ref=e591]
+                      - text: 24/8, 11:48 p. m.
+              - generic [ref=e593]:
+                - generic [ref=e594]: excel
+                - generic [ref=e595]: NUEVO
+                - link "Ver" [ref=e596] [cursor=pointer]:
+                  - /url: /leads/5af05d58-5fb7-4923-94dc-3a6881b326be
+            - generic [ref=e597]:
+              - generic [ref=e599]:
+                - img [ref=e601]
+                - generic [ref=e606]:
+                  - paragraph [ref=e607]: Nombre
+                  - generic [ref=e608]:
+                    - generic [ref=e609]:
+                      - img [ref=e610]
+                      - text: "+54"
+                    - generic [ref=e612]:
+                      - img [ref=e613]
+                      - text: nombre@email.com
+                    - generic [ref=e616]:
+                      - img [ref=e617]
+                      - text: 24/8, 11:48 p. m.
+              - generic [ref=e619]:
+                - generic [ref=e620]: excel
+                - generic [ref=e621]: NUEVO
+                - link "Ver" [ref=e622] [cursor=pointer]:
+                  - /url: /leads/f1c37b48-7d99-401b-9525-f07da9767510
+        - generic [ref=e623]:
+          - generic [ref=e624]:
+            - generic [ref=e625]:
+              - heading "Tendencia de Leads" [level=3] [ref=e626]
+              - paragraph [ref=e627]: Leads y conversiones por día
+            - application [ref=e632]:
+              - generic [ref=e637]:
+                - generic [ref=e640]: 18/8
+                - generic [ref=e643]: 19/8
+                - generic [ref=e646]: 20/8
+                - generic [ref=e649]: 21/8
+                - generic [ref=e652]: 22/8
+                - generic [ref=e655]: 23/8
+                - generic [ref=e658]: 24/8
+              - generic [ref=e660]:
+                - generic [ref=e663]: "0"
+                - generic [ref=e666]: "250"
+                - generic [ref=e669]: "500"
+                - generic [ref=e672]: "750"
+                - generic [ref=e675]: "1000"
+          - generic [ref=e696]:
+            - generic [ref=e697]:
+              - heading "Distribución por Estado" [level=3] [ref=e698]
+              - paragraph [ref=e699]: Leads agrupados por estado actual
+            - generic [ref=e703]:
+              - generic [ref=e705]:
+                - generic [ref=e708]: Doc. Pendiente (13)
+                - generic [ref=e711]: Nuevo (945)
+                - generic [ref=e714]: Preaprobado (8)
+                - generic [ref=e717]: Rechazado (34)
+              - application [ref=e718]:
+                - generic [ref=e729]:
+                  - generic [ref=e732]: Nuevo 95%
+                  - generic [ref=e735]: Rechazado 3%
+                  - generic [ref=e738]: Preaprobado 1%
+                  - generic [ref=e741]: Doc. Pendiente 1%
+  - generic [ref=e742]: 18/8
+```
