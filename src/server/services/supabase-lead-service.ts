@@ -112,7 +112,7 @@ export class SupabaseLeadService {
 
       logger.info('All leads fetched from database', {
         totalLeads: allLeads.length,
-        uniqueEstados: [...new Set(allLeads.map((l: any) => l.estado))],
+        uniqueEstados: Array.from(new Set(allLeads.map((l: any) => l.estado))),
         sampleLead: allLeads[0]
       })
 
