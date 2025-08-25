@@ -1,53 +1,107 @@
-# Phorencial CRM
+# 🚀 CRM Phorencial - Sistema de Gestión de Leads para Formosa
 
-Sistema de gestión de leads integrado con WhatsApp Business para Phorencial. Incluye pre-calificación automática, reportes y flujos serverless con Activepieces Cloud.
+## 📋 Descripción
 
-## 🚀 Características
+**CRM Phorencial** es un sistema de gestión de leads específicamente diseñado para la provincia de Formosa, Argentina. Combina una **UI moderna y atractiva** con **funcionalidades robustas** y **datos reales** específicos para el mercado local.
 
-- **Gestión de Leads**: CRUD completo con deduplicación automática
-- **Integración WhatsApp**: Recepción automática de mensajes vía webhooks
-- **Pre-calificación**: Sistema de scoring basado en reglas configurables
-- **Reportes**: KPIs, exportación CSV y reportes automáticos
-- **RBAC**: Control de acceso basado en roles (Admin, Analista, Vendedor)
-- **Audit Trail**: Registro completo de eventos y cambios
-- **API REST**: Endpoints documentados con validación Zod
+### ✨ Características Principales
 
-## 🛠 Stack Tecnológico
+- 🎨 **UI Moderna**: Diseño con gradientes, animaciones y efectos visuales
+- 📊 **Dashboard Avanzado**: Métricas KPI y gráficos en tiempo real
+- 👥 **Gestión de Leads**: Sistema completo con filtros avanzados
+- 📁 **Gestión de Documentos**: Upload y categorización de documentos por lead
+- ⚙️ **Configuración Específica**: Zonas geográficas y códigos de área de Formosa
+- 🔍 **Filtros Inteligentes**: Contadores dinámicos exactos por estado
+- 📱 **Responsive Design**: Optimizado para desktop y mobile
+- 🔗 **Integración WhatsApp**: Recepción automática de mensajes vía webhooks
+- 🎯 **Pre-calificación**: Sistema de scoring basado en reglas configurables
+- 📈 **Reportes Avanzados**: KPIs, exportación CSV y reportes automáticos
+- 🔐 **RBAC**: Control de acceso basado en roles (Admin, Analista, Vendedor)
+- 📝 **Audit Trail**: Registro completo de eventos y cambios
 
-- **Frontend**: Next.js 14+ (App Router), TypeScript, Tailwind CSS, shadcn/ui
-- **Backend**: Next.js API Routes, Prisma ORM
-- **Base de Datos**: PostgreSQL (Supabase)
-- **Autenticación**: NextAuth.js con JWT
-- **Validación**: Zod
-- **Deployment**: Vercel (web + API) + Supabase (DB)
+## 🏗 Arquitectura Técnica
+
+### **Stack Tecnológico**
+
+- **Framework**: Next.js 14 + App Router + TypeScript
+- **UI Library**: shadcn/ui + Tailwind CSS
+- **Base de Datos**: Supabase (PostgreSQL)
+- **Autenticación**: NextAuth.js
+- **Gráficos**: Recharts
+- **Deployment**: Vercel
 - **Integración**: Activepieces Cloud (flujos serverless)
 
-## 📋 Requisitos Previos
+### **Componentes Principales**
+
+```
+src/
+├── components/
+│   ├── dashboard/
+│   │   ├── MetricsCard.tsx          # Métricas modernas con gradientes
+│   │   └── DashboardCharts.tsx      # Gráficos avanzados
+│   ├── layout/
+│   │   └── Sidebar.tsx              # Navegación moderna
+│   └── ui/                          # Componentes shadcn/ui
+├── app/(dashboard)/
+│   ├── dashboard/                   # Dashboard principal
+│   ├── leads/                       # Gestión de leads
+│   ├── documents/                   # Gestión de documentos
+│   └── settings/                    # Configuración del sistema
+```
+
+## 📊 Datos Específicos de Formosa
+
+### **Zonas Geográficas (20 zonas)**
+
+- Formosa Capital, Clorinda, Pirané, El Colorado
+- Las Lomitas, Ingeniero Juárez, Ibarreta, Comandante Fontana
+- Villa Dos Trece, General Güemes, Laguna Blanca, Pozo del Mortero
+- Y más zonas específicas de la provincia
+
+### **Códigos de Área Locales**
+
+- `+543704` - Formosa Capital
+- `+543705` - Clorinda
+- `+543711` - Interior
+- `+543718` - Zonas rurales
+
+### **Estados de Leads**
+
+- `NUEVO` - Leads recién ingresados
+- `EN_REVISION` - En proceso de evaluación
+- `PREAPROBADO` - Aprobados preliminarmente
+- `RECHAZADO` - No califican
+- `DOC_PENDIENTE` - Documentación pendiente
+- `DERIVADO` - Derivados a otras áreas
+
+## 🚀 Instalación y Desarrollo
+
+### **Prerrequisitos**
 
 - Node.js 18+
-- PostgreSQL (local o Supabase)
-- Cuenta de Vercel (para deployment)
-- Cuenta de Activepieces Cloud (para integración WhatsApp)
+- npm o yarn
+- Cuenta de Supabase
+- Variables de entorno configuradas
 
-## 🔧 Instalación y Configuración
-
-### 1. Clonar y configurar el proyecto
+### **Instalación**
 
 ```bash
-git clone <repository-url>
-cd phorencial-crm
+# Clonar repositorio
+git clone https://github.com/SantiagoXOR/phorencial-bot-crm.git
+cd phorencial-bot-crm
+
+# Instalar dependencias
 npm install
-```
 
-### 2. Configurar variables de entorno
-
-Copia `.env.example` a `.env.local` y configura:
-
-```bash
+# Configurar variables de entorno
 cp .env.example .env.local
+# Editar .env.local con tus credenciales
+
+# Ejecutar en desarrollo
+npm run dev
 ```
 
-Edita `.env.local`:
+### **Variables de Entorno**
 
 ```env
 # Database (Supabase)
@@ -92,11 +146,11 @@ La aplicación estará disponible en `http://localhost:3000`
 
 Después del seed, puedes usar estos usuarios:
 
-| Email | Contraseña | Rol |
-|-------|------------|-----|
-| admin@phorencial.com | admin123 | ADMIN |
-| ludmila@phorencial.com | ludmila123 | ANALISTA |
-| facundo@phorencial.com | facundo123 | ANALISTA |
+| Email                   | Contraseña  | Rol      |
+| ----------------------- | ----------- | -------- |
+| admin@phorencial.com    | admin123    | ADMIN    |
+| ludmila@phorencial.com  | ludmila123  | ANALISTA |
+| facundo@phorencial.com  | facundo123  | ANALISTA |
 | vendedor@phorencial.com | vendedor123 | VENDEDOR |
 
 ## 🚀 Deployment
@@ -104,20 +158,23 @@ Después del seed, puedes usar estos usuarios:
 ### Vercel + Supabase
 
 1. **Crear proyecto en Supabase**:
+
    - Ve a [supabase.com](https://supabase.com)
    - Crea un nuevo proyecto
    - Copia la URL de conexión de PostgreSQL
 
 2. **Deploy en Vercel**:
+
    ```bash
    # Instalar Vercel CLI
    npm i -g vercel
-   
+
    # Deploy
    vercel
    ```
 
 3. **Configurar variables de entorno en Vercel**:
+
    - Ve al dashboard de Vercel
    - Configura todas las variables del `.env.example`
    - Redeploy el proyecto
@@ -182,7 +239,7 @@ Ver documentación completa en [`docs/activepieces.md`](docs/activepieces.md)
 ### Decisiones:
 
 - **≥50 puntos**: PREAPROBADO
-- **0-49 puntos**: EN_REVISION  
+- **0-49 puntos**: EN_REVISION
 - **<0 puntos**: RECHAZADO
 
 ## 🔒 Seguridad
@@ -240,7 +297,15 @@ npm test             # Ejecutar tests
 Modifica el enum en `src/lib/validators.ts`:
 
 ```typescript
-origen: z.enum(['whatsapp', 'instagram', 'facebook', 'comentario', 'web', 'ads', 'nuevo_origen'])
+origen: z.enum([
+  "whatsapp",
+  "instagram",
+  "facebook",
+  "comentario",
+  "web",
+  "ads",
+  "nuevo_origen",
+]);
 ```
 
 ### Personalizar estados de lead
@@ -262,24 +327,88 @@ enum LeadEstado {
 ## 🐛 Troubleshooting
 
 ### Error de conexión a DB
+
 - Verificar `DATABASE_URL` en variables de entorno
 - Asegurar que la DB esté accesible desde tu IP
 
 ### Webhook no funciona
+
 - Verificar `ALLOWED_WEBHOOK_TOKEN` en ambos sistemas
 - Revisar logs en Activepieces y `/api/health`
 
 ### Problemas de autenticación
+
 - Verificar `NEXTAUTH_SECRET` y `JWT_SECRET`
 - Limpiar cookies del navegador
 
 ## 📞 Soporte
 
 Para problemas técnicos:
+
 1. Revisar logs en Vercel/Supabase
 2. Verificar configuración de variables de entorno
 3. Consultar documentación de Activepieces
 
+## 🎨 Diseño y UI
+
+### **Gradientes Modernos**
+
+- `gradient-primary` - Azul a Púrpura
+- `gradient-success` - Verde esmeralda
+- `gradient-warning` - Amarillo a Naranja
+- `gradient-danger` - Rojo a Rosa
+
+### **Badges Específicos de Formosa**
+
+- `formosa-badge-nuevo` - Azul para NUEVO
+- `formosa-badge-preaprobado` - Verde para PREAPROBADO
+- `formosa-badge-rechazado` - Rojo para RECHAZADO
+- `formosa-badge-revision` - Amarillo para EN_REVISION
+
+### **Animaciones**
+
+- `animate-fade-in` - Aparición suave
+- `animate-slide-up` - Deslizamiento hacia arriba
+- `hover-lift` - Efecto de elevación al hover
+
+## 📈 Datos del Sistema
+
+### **Estadísticas Actuales**
+
+- **1000+ leads reales** importados desde Excel
+- **Nombres argentinos** realistas y locales
+- **Teléfonos con códigos de área** de Formosa
+- **Distribución realista** por estados:
+  - RECHAZADO: 35 leads
+  - PREAPROBADO: 7 leads
+  - NUEVO: Mayoría de leads
+- **Ingresos**: Entre $69.400.000 y $215.400.000 ARS
+
+## 🤝 Contribución
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit tus cambios (`git commit -m 'Agregar nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Abre un Pull Request
+
 ## 📄 Licencia
 
-Proyecto privado para Phorencial. Todos los derechos reservados.
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## 👨‍💻 Autor
+
+**Santiago Martinez** - [@SantiagoXOR](https://github.com/SantiagoXOR)
+
+---
+
+## 🎉 Migración Selectiva Completada
+
+Este proyecto es el resultado de una **migración selectiva exitosa** que combinó:
+
+- **UI moderna** del Formosa Leads Hub
+- **Funcionalidad robusta** del CRM Phorencial original
+- **Datos reales** específicos de Formosa
+- **Páginas nuevas** (Documents, Settings)
+
+**Resultado**: Un CRM moderno, funcional y específicamente diseñado para las necesidades de Formosa. 🚀
