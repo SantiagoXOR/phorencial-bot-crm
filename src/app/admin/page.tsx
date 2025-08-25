@@ -45,6 +45,7 @@ export default function AdminPage() {
     } catch (error) {
       setResult({
         success: false,
+        message: 'Error de conexión',
         error: 'Error de conexión',
         details: error instanceof Error ? error.message : 'Error desconocido'
       });
