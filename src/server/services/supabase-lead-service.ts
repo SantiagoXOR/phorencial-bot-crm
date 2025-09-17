@@ -1,4 +1,6 @@
 import { logger } from '@/lib/logger'
+import { cacheService, CacheStrategies, CacheInvalidation } from '@/lib/cache-service'
+import { analyzeQueryPerformance } from '@/lib/database-optimization'
 
 interface Lead {
   id?: string
@@ -26,7 +28,14 @@ export class SupabaseLeadService {
   constructor() {
     this.supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
     this.serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-    
+
+    logger.info('SupabaseLeadService constructor', {
+      hasUrl: !!this.supabaseUrl,
+      hasKey: !!this.serviceRoleKey,
+      urlPrefix: this.supabaseUrl ? this.supabaseUrl.substring(0, 30) + '...' : 'MISSING',
+      keyPrefix: this.serviceRoleKey ? this.serviceRoleKey.substring(0, 20) + '...' : 'MISSING'
+    })
+
     if (!this.supabaseUrl || !this.serviceRoleKey) {
       throw new Error('Supabase credentials not configured')
     }
@@ -34,7 +43,14 @@ export class SupabaseLeadService {
 
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
     const url = `${this.supabaseUrl}/rest/v1/${endpoint}`
-    
+
+    logger.info('Making Supabase request', {
+      url,
+      method: options.method || 'GET',
+      hasServiceKey: !!this.serviceRoleKey,
+      serviceKeyPrefix: this.serviceRoleKey ? this.serviceRoleKey.substring(0, 20) + '...' : 'MISSING'
+    })
+
     const response = await fetch(url, {
       ...options,
       headers: {
@@ -43,6 +59,12 @@ export class SupabaseLeadService {
         'Content-Type': 'application/json',
         ...options.headers
       }
+    })
+
+    logger.info('Supabase response received', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
     })
 
     if (!response.ok) {
@@ -87,6 +109,10 @@ export class SupabaseLeadService {
       const lead = Array.isArray(result) ? result[0] : result
 
       logger.info('Lead created successfully', { leadId: lead.id })
+
+      // Invalidar cache relacionado con leads
+      CacheInvalidation.onLeadChange()
+
       return lead
 
     } catch (error: any) {
@@ -98,82 +124,303 @@ export class SupabaseLeadService {
   async getLeads(filters: {
     estado?: string
     origen?: string
+    zona?: string
     search?: string
+    ingresoMin?: number
+    ingresoMax?: number
+    fechaDesde?: string
+    fechaHasta?: string
+    sortBy?: string
+    sortOrder?: string
     limit?: number
     offset?: number
+    includePipeline?: boolean
   } = {}): Promise<{ leads: Lead[], total: number }> {
+    const startTime = Date.now()
+
     try {
-      logger.info('SupabaseLeadService.getLeads called - FIXED VERSION', { filters })
+      logger.info('SupabaseLeadService.getLeads called - OPTIMIZED VERSION', { filters })
 
-      // SOLUCIÓN ALTERNATIVA: Obtener todos los leads y filtrar en memoria
-      // Esto es temporal hasta identificar el problema con la consulta SQL
-      const allLeadsResponse = await this.makeRequest('Lead?select=*&order=createdAt.desc')
-      let allLeads = await allLeadsResponse.json()
+      // Usar cache para consultas frecuentes
+      const cacheKey = CacheStrategies.leads.key(filters)
 
-      logger.info('All leads fetched from database', {
-        totalLeads: allLeads.length,
-        uniqueEstados: Array.from(new Set(allLeads.map((l: any) => l.estado))),
-        sampleLead: allLeads[0]
+      return await cacheService.getOrSet(
+        cacheKey,
+        async () => {
+          return await this.fetchLeadsFromDatabase(filters)
+        },
+        {
+          ttl: CacheStrategies.leads.ttl,
+          tags: CacheStrategies.leads.tags
+        }
+      )
+
+    } catch (error: any) {
+      logger.error('Error in optimized getLeads', {
+        error: error.message,
+        stack: error.stack,
+        filters,
+        queryTime: Date.now() - startTime
       })
 
-      // Aplicar filtros en memoria
-      let filteredLeads = allLeads
+      // Fallback a método simple si falla la query optimizada
+      logger.warn('Falling back to simple query due to error')
+      return this.getLeadsSimple(filters)
+    }
+  }
 
+  /**
+   * Método privado para obtener leads de la base de datos
+   */
+  private async fetchLeadsFromDatabase(filters: any): Promise<{ leads: Lead[], total: number }> {
+    const startTime = Date.now()
+
+    try {
+      // Construir query optimizada usando filtros de Supabase
+      const queryParams = new URLSearchParams()
+
+      // Seleccionar campos necesarios
+      queryParams.append('select', '*')
+
+      // Aplicar filtros directamente en la query
       if (filters.estado) {
-        const beforeFilter = filteredLeads.length
-        filteredLeads = filteredLeads.filter((lead: any) => lead.estado === filters.estado)
-        logger.info('Applied estado filter', {
-          filterValue: filters.estado,
-          beforeFilter,
-          afterFilter: filteredLeads.length,
-          matchingLeads: filteredLeads.map((l: any) => ({ nombre: l.nombre, estado: l.estado }))
-        })
+        queryParams.append('estado', `eq.${filters.estado}`)
       }
 
       if (filters.origen) {
-        const beforeFilter = filteredLeads.length
+        queryParams.append('origen', `eq.${filters.origen}`)
+      }
+
+      if (filters.zona) {
+        queryParams.append('zona', `eq.${filters.zona}`)
+      }
+
+      // Filtros de rango de ingresos
+      if (filters.ingresoMin !== undefined) {
+        queryParams.append('ingresos', `gte.${filters.ingresoMin}`)
+      }
+
+      if (filters.ingresoMax !== undefined) {
+        queryParams.append('ingresos', `lte.${filters.ingresoMax}`)
+      }
+
+      // Filtros de fecha
+      if (filters.fechaDesde) {
+        queryParams.append('createdAt', `gte.${filters.fechaDesde}T00:00:00`)
+      }
+
+      if (filters.fechaHasta) {
+        queryParams.append('createdAt', `lte.${filters.fechaHasta}T23:59:59`)
+      }
+
+      // Búsqueda de texto (usando or para múltiples campos)
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase()
+        queryParams.append('or', `nombre.ilike.*${searchTerm}*,telefono.ilike.*${searchTerm}*,email.ilike.*${searchTerm}*,dni.ilike.*${searchTerm}*`)
+      }
+
+      // Ordenamiento
+      const sortBy = filters.sortBy || 'createdAt'
+      const sortOrder = filters.sortOrder || 'desc'
+      queryParams.append('order', `${sortBy}.${sortOrder}`)
+
+      // Paginación
+      const limit = Math.min(filters.limit || 10, 100) // Máximo 100 por página
+      const offset = filters.offset || 0
+
+      queryParams.append('limit', limit.toString())
+      queryParams.append('offset', offset.toString())
+
+      // Construir URL final
+      const endpoint = `Lead?${queryParams.toString()}`
+
+      logger.info('Executing optimized Supabase query', {
+        endpoint,
+        filters: {
+          estado: filters.estado,
+          origen: filters.origen,
+          zona: filters.zona,
+          hasSearch: !!filters.search,
+          ingresoRange: [filters.ingresoMin, filters.ingresoMax],
+          dateRange: [filters.fechaDesde, filters.fechaHasta],
+          sortBy,
+          sortOrder,
+          limit,
+          offset
+        }
+      })
+
+      // Ejecutar query principal
+      const leadsResponse = await this.makeRequest(endpoint, {
+        headers: {
+          'Prefer': 'return=representation'
+        }
+      })
+
+      if (!leadsResponse.ok) {
+        throw new Error(`Supabase query failed: ${leadsResponse.status} ${leadsResponse.statusText}`)
+      }
+
+      const leads = await leadsResponse.json()
+
+      // Obtener count total (sin paginación) para la misma query
+      const countParams = new URLSearchParams()
+
+      // Aplicar los mismos filtros para el count
+      if (filters.estado) {
+        countParams.append('estado', `eq.${filters.estado}`)
+      }
+      if (filters.origen) {
+        countParams.append('origen', `eq.${filters.origen}`)
+      }
+      if (filters.zona) {
+        countParams.append('zona', `eq.${filters.zona}`)
+      }
+      if (filters.ingresoMin !== undefined) {
+        countParams.append('ingresos', `gte.${filters.ingresoMin}`)
+      }
+      if (filters.ingresoMax !== undefined) {
+        countParams.append('ingresos', `lte.${filters.ingresoMax}`)
+      }
+      if (filters.fechaDesde) {
+        countParams.append('createdAt', `gte.${filters.fechaDesde}T00:00:00`)
+      }
+      if (filters.fechaHasta) {
+        countParams.append('createdAt', `lte.${filters.fechaHasta}T23:59:59`)
+      }
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase()
+        countParams.append('or', `nombre.ilike.*${searchTerm}*,telefono.ilike.*${searchTerm}*,email.ilike.*${searchTerm}*,dni.ilike.*${searchTerm}*`)
+      }
+
+      countParams.append('select', 'count')
+
+      const countResponse = await this.makeRequest(`Lead?${countParams.toString()}`, {
+        headers: {
+          'Prefer': 'count=exact'
+        }
+      })
+
+      const totalCount = parseInt(countResponse.headers.get('content-range')?.split('/')[1] || '0')
+
+      const queryTime = Date.now() - startTime
+
+      // Analizar rendimiento de la consulta
+      const performance = analyzeQueryPerformance(queryTime, leads.length, filters)
+
+      logger.info('Optimized query results', {
+        leadsReturned: leads.length,
+        totalCount,
+        queryTime,
+        performance: performance.performance,
+        recommendations: performance.recommendations,
+        hasFilters: Object.keys(filters).length > 2 // más que limit y offset
+      })
+
+      return {
+        leads: leads || [],
+        total: totalCount
+      }
+
+    } catch (error: any) {
+      logger.error('Error in optimized getLeads', {
+        error: error.message,
+        stack: error.stack,
+        filters
+      })
+
+      // Fallback a método simple si falla la query optimizada
+      logger.warn('Falling back to simple query due to error')
+      return this.getLeadsSimple(filters)
+    }
+  }
+
+  /**
+   * Método de fallback simple para casos donde la query optimizada falla
+   */
+  private async getLeadsSimple(filters: any): Promise<{ leads: Lead[], total: number }> {
+    try {
+      const response = await this.makeRequest('Lead?select=*&order=createdAt.desc', {
+        headers: {
+          'Prefer': 'return=representation'
+        }
+      })
+
+      let allLeads = await response.json()
+
+      // Aplicar filtros básicos en memoria como fallback
+      let filteredLeads = allLeads
+
+      if (filters.estado) {
+        filteredLeads = filteredLeads.filter((lead: any) => lead.estado === filters.estado)
+      }
+
+      if (filters.origen) {
         filteredLeads = filteredLeads.filter((lead: any) => lead.origen === filters.origen)
-        logger.info('Applied origen filter', {
-          filterValue: filters.origen,
-          beforeFilter,
-          afterFilter: filteredLeads.length
-        })
       }
 
       if (filters.search) {
-        const beforeFilter = filteredLeads.length
         const searchLower = filters.search.toLowerCase()
         filteredLeads = filteredLeads.filter((lead: any) =>
           lead.nombre?.toLowerCase().includes(searchLower) ||
           lead.telefono?.toLowerCase().includes(searchLower) ||
-          lead.email?.toLowerCase().includes(searchLower)
+          lead.email?.toLowerCase().includes(searchLower) ||
+          lead.dni?.toLowerCase().includes(searchLower)
         )
-        logger.info('Applied search filter', {
-          filterValue: filters.search,
-          beforeFilter,
-          afterFilter: filteredLeads.length
-        })
       }
 
       const total = filteredLeads.length
-
-      // Aplicar paginación
-      const offset = filters.offset || 0
       const limit = filters.limit || 10
+      const offset = filters.offset || 0
+
       const paginatedLeads = filteredLeads.slice(offset, offset + limit)
 
-      logger.info('Final result after filtering and pagination', {
-        totalFiltered: total,
-        paginatedCount: paginatedLeads.length,
-        offset,
-        limit
-      })
-
-      return { leads: paginatedLeads, total }
+      return {
+        leads: paginatedLeads,
+        total
+      }
 
     } catch (error: any) {
-      logger.error('Error fetching leads', { error: error.message, stack: error.stack })
+      logger.error('Error in simple fallback getLeads', {
+        error: error.message,
+        filters
+      })
       throw error
+    }
+  }
+
+  // Método para enriquecer leads con información del pipeline
+  private async enrichLeadsWithPipeline(leads: Lead[]): Promise<Lead[]> {
+    try {
+      if (leads.length === 0) return leads
+
+      // Obtener información del pipeline para todos los leads
+      const leadIds = leads.map(lead => lead.id).join(',')
+      const pipelineResponse = await this.makeRequest(
+        `lead_pipeline?lead_id=in.(${leadIds})&select=*`
+      )
+      const pipelineData = await pipelineResponse.json()
+
+      // Crear un mapa de pipeline por lead_id
+      const pipelineMap = new Map()
+      pipelineData.forEach((pipeline: any) => {
+        pipelineMap.set(pipeline.lead_id, pipeline)
+      })
+
+      // Enriquecer cada lead con su información de pipeline
+      const enrichedLeads = leads.map(lead => {
+        const pipeline = pipelineMap.get(lead.id)
+        return {
+          ...lead,
+          pipeline: pipeline || null
+        }
+      })
+
+      return enrichedLeads
+    } catch (error) {
+      logger.error('Error enriching leads with pipeline data', { error })
+      // En caso de error, devolver leads sin información de pipeline
+      return leads
     }
   }
 
@@ -245,6 +492,19 @@ export class SupabaseLeadService {
 
     } catch (error: any) {
       logger.error('Error finding lead by phone', { error: error.message, telefono })
+      throw error
+    }
+  }
+
+  async getLeadEvents(leadId: string): Promise<any[]> {
+    try {
+      const response = await this.makeRequest(`LeadEvent?lead_id=eq.${leadId}&select=*&order=created_at.desc`)
+      const result = await response.json()
+      
+      return Array.isArray(result) ? result : []
+
+    } catch (error: any) {
+      logger.error('Error getting lead events', { error: error.message, leadId })
       throw error
     }
   }

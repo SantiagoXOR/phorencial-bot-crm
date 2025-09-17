@@ -31,13 +31,20 @@ function SignInForm() {
       })
 
       if (result?.error) {
-        setError('Credenciales inválidas')
+        if (result.error === 'CredentialsSignin') {
+          setError('Credenciales inválidas. Verifica tu email y contraseña.')
+        } else {
+          setError(`Error de autenticación: ${result.error}`)
+        }
+      } else if (result?.ok) {
+        // Successful login - redirect to callback URL
+        window.location.href = callbackUrl
       } else {
-        router.push(callbackUrl)
-        router.refresh()
+        setError('Error inesperado durante el inicio de sesión')
       }
     } catch (error) {
-      setError('Error al iniciar sesión')
+      console.error('Login error:', error)
+      setError('Error de conexión. Verifica tu conexión a internet.')
     } finally {
       setIsLoading(false)
     }

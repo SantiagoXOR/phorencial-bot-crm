@@ -109,13 +109,16 @@ export const UI_SELECTORS = {
   LOGOUT_BUTTON: 'button[data-testid="logout-button"]',
   
   // Dashboard
-  DASHBOARD_TITLE: 'h1:has-text("Dashboard")',
+  DASHBOARD_TITLE: '[data-testid="dashboard-title"]',
   METRICS_CARDS: '[data-testid="metrics-card"]',
   DASHBOARD_CHARTS: '[data-testid="dashboard-charts"]',
   
   // Sidebar
   SIDEBAR: '[data-testid="sidebar"]',
   SIDEBAR_LOGO: '[data-testid="sidebar-logo"]',
+  USER_INFO: '[data-testid="user-info"]',
+  USER_NAME: '[data-testid="user-name"]',
+  USER_EMAIL: '[data-testid="user-email"]',
   NAV_DASHBOARD: '[data-testid="sidebar"] a[href="/dashboard"]',
   NAV_LEADS: '[data-testid="sidebar"] a[href="/leads"]',
   NAV_DOCUMENTS: '[data-testid="sidebar"] a[href="/documents"]',

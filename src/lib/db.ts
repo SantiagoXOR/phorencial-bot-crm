@@ -53,60 +53,7 @@ class SupabaseClient {
     }
   }
 
-  async createUser(userData: any) {
-    // Mapear nuestro esquema a Supabase
-    const supabaseUser = {
-      email: userData.email,
-      name: userData.nombre,
-      password: userData.hash,
-      role: userData.rol
-    }
 
-    const users = await this.request('/User', {
-      method: 'POST',
-      headers: { 'Prefer': 'return=representation' },
-      body: JSON.stringify(supabaseUser)
-    })
-
-    if (!users[0]) return null
-
-    // Mapear respuesta de Supabase a nuestro esquema
-    return {
-      id: users[0].id,
-      email: users[0].email,
-      nombre: users[0].name,
-      hash: users[0].password,
-      rol: users[0].role,
-      createdAt: users[0].createdAt
-    }
-  }
-
-  async updateUser(id: string, userData: any) {
-    // Mapear nuestro esquema a Supabase
-    const supabaseUser: any = {}
-    if (userData.email) supabaseUser.email = userData.email
-    if (userData.nombre) supabaseUser.name = userData.nombre
-    if (userData.hash) supabaseUser.password = userData.hash
-    if (userData.rol) supabaseUser.role = userData.rol
-
-    const users = await this.request(`/User?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: { 'Prefer': 'return=representation' },
-      body: JSON.stringify(supabaseUser)
-    })
-
-    if (!users[0]) return null
-
-    // Mapear respuesta de Supabase a nuestro esquema
-    return {
-      id: users[0].id,
-      email: users[0].email,
-      nombre: users[0].name,
-      hash: users[0].password,
-      rol: users[0].role,
-      createdAt: users[0].createdAt
-    }
-  }
 
   async countUsers() {
     const response = await this.request('/User?select=count', {
@@ -158,6 +105,12 @@ class SupabaseClient {
       body: JSON.stringify(leadData)
     })
     return leads[0]
+  }
+
+  async deleteLead(id: string) {
+    await this.request(`/Lead?id=eq.${id}`, {
+      method: 'DELETE'
+    })
   }
 
   async findManyLeads(query: any = {}) {
@@ -320,6 +273,80 @@ class SupabaseClient {
     return this.request(`/Rule?key=eq.${key}`, {
       method: 'DELETE'
     })
+  }
+
+  // Nuevas funciones para el sistema de usuarios mejorado
+  async findUserByEmailNew(email: string) {
+    const users = await this.request(`/users?email=eq.${email}&limit=1`)
+    return users[0] || null
+  }
+
+  async updateUserLastLogin(userId: string) {
+    await this.request(`/users?id=eq.${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        last_login: new Date().toISOString()
+      })
+    })
+  }
+
+  async getUserPermissions(userId: string) {
+    // Obtener permisos por rol del usuario
+    const user = await this.request(`/users?id=eq.${userId}&select=role`)
+    if (!user[0]) return { rolePermissions: [], userPermissions: [] }
+
+    const rolePermissions = await this.request(`
+      /role_permissions?role=eq.${user[0].role}&select=permissions(name,resource,action)
+    `)
+
+    // Obtener permisos específicos del usuario
+    const userPermissions = await this.request(`
+      /user_permissions?user_id=eq.${userId}&granted=eq.true&select=permissions(name,resource,action)
+    `)
+
+    return {
+      rolePermissions: rolePermissions || [],
+      userPermissions: userPermissions || []
+    }
+  }
+
+  async checkUserPermission(userId: string, resource: string, action: string) {
+    try {
+      const result = await this.request(`
+        /rpc/user_has_permission?p_user_id=${userId}&p_resource=${resource}&p_action=${action}
+      `)
+      return result || false
+    } catch (error) {
+      console.error('Error checking permission:', error)
+      return false
+    }
+  }
+
+  async createUser(userData: any) {
+    const users = await this.request('/users', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify(userData)
+    })
+    return users[0]
+  }
+
+  async updateUser(userId: string, userData: any) {
+    const users = await this.request(`/users?id=eq.${userId}`, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify(userData)
+    })
+    return users[0]
+  }
+
+  async findAllUsers() {
+    return this.request('/users?select=*&order=created_at.desc')
+  }
+
+  async findUserById(userId: string) {
+    const users = await this.request(`/users?id=eq.${userId}&limit=1`)
+    return users[0] || null
   }
 }
 

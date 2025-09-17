@@ -4,10 +4,15 @@ import { resolve } from 'path'
 export default defineConfig({
   test: {
     environment: 'node',
+    globals: true,
+    setupFiles: ['./src/__tests__/setup.ts'],
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
     },
+  },
+  esbuild: {
+    target: 'node14'
   },
 })

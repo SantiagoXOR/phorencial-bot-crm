@@ -8,7 +8,20 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatDate, formatCurrency, cn } from '@/lib/utils'
-import { Search, Plus, Filter, Download, Users, TrendingUp } from 'lucide-react'
+import { Search, Plus, Filter, Download, Users, TrendingUp, Eye, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+import DeleteConfirmationModal from '@/components/ui/delete-confirmation-modal'
+import { useToast } from '@/components/ui/toast'
+import { PermissionGuard, usePermissions, ConditionalRender } from '@/components/auth/PermissionGuard'
+import { PipelineStageIndicator } from '@/components/pipeline/PipelineStageIndicator'
+import AdvancedSearch from '@/components/leads/AdvancedSearch'
+import {
+  LoadingState,
+  LeadTableSkeleton,
+  MetricCardSkeleton,
+  EmptySearchState,
+  LoadingButton
+} from '@/components/ui/loading-states'
+import { useApiLoading } from '@/hooks/useLoadingState'
 
 interface Lead {
   id: string
@@ -19,6 +32,7 @@ interface Lead {
   origen?: string
   ingresos?: number
   zona?: string
+  notas?: string
   createdAt: string
 }
 
@@ -29,17 +43,46 @@ interface LeadsResponse {
   totalPages: number
 }
 
-export default function LeadsPage() {
+function LeadsPage() {
   const { data: session } = useSession()
+  const { addToast } = useToast()
+  const { checkPermission } = usePermissions()
   const [leads, setLeads] = useState<Lead[]>([])
   const [allLeads, setAllLeads] = useState<Lead[]>([]) // Para contadores dinámicos exactos
-  const [loading, setLoading] = useState(true)
+
+  // Estados de carga usando el hook personalizado
+  const {
+    isLoading: loading,
+    error: loadingError,
+    apiCall
+  } = useApiLoading()
   const [search, setSearch] = useState('')
   const [estado, setEstado] = useState('')
   const [origen, setOrigen] = useState('')
+  const [zona, setZona] = useState('')
+  const [ingresoMin, setIngresoMin] = useState('')
+  const [ingresoMax, setIngresoMax] = useState('')
+  const [fechaDesde, setFechaDesde] = useState('')
+  const [fechaHasta, setFechaHasta] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalLeads, setTotalLeads] = useState(0)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean
+    leadId: string
+    leadName: string
+  }>({
+    isOpen: false,
+    leadId: '',
+    leadName: ''
+  })
+  const [editingField, setEditingField] = useState<{
+    leadId: string
+    field: 'estado' | 'notas'
+    value: string
+  } | null>(null)
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   // Función para obtener todos los leads para contadores dinámicos
   const fetchAllLeads = async () => {
@@ -55,33 +98,182 @@ export default function LeadsPage() {
   }
 
   const fetchLeads = async () => {
-    try {
-      setLoading(true)
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '10',
-        ...(search && { q: search }),
-        ...(estado && { estado }),
-        ...(origen && { origen }),
-      })
+    await apiCall(
+      async () => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: '10',
+          ...(search && { q: search }),
+          ...(estado && { estado }),
+          ...(origen && { origen }),
+          ...(zona && { zona }),
+          ...(ingresoMin && { ingresoMin }),
+          ...(ingresoMax && { ingresoMax }),
+          ...(fechaDesde && { fechaDesde }),
+          ...(fechaHasta && { fechaHasta }),
+        })
 
-      const response = await fetch(`/api/leads?${params}`)
-      if (response.ok) {
+        const response = await fetch(`/api/leads?${params}`)
+        if (!response.ok) {
+          throw new Error('Error al cargar los leads')
+        }
+
         const data: LeadsResponse = await response.json()
         setLeads(data.leads)
         setTotalPages(data.totalPages)
         setTotalLeads(data.total)
+
+        return data
+      },
+      {
+        loadingMessage: 'Cargando leads...',
+        successMessage: `${leads.length} leads cargados exitosamente`,
+        errorMessage: 'Error al cargar los leads'
       }
+    )
+  }
+
+  // Función para manejar búsqueda avanzada
+  const handleAdvancedSearch = (filters: any) => {
+    setSearch(filters.search)
+    setEstado(filters.estado)
+    setZona(filters.zona)
+    setOrigen(filters.origen)
+    setIngresoMin(filters.ingresoMin)
+    setIngresoMax(filters.ingresoMax)
+    setFechaDesde(filters.fechaDesde)
+    setFechaHasta(filters.fechaHasta)
+    setPage(1) // Reset to first page
+  }
+
+  // Función para limpiar filtros
+  const handleClearFilters = () => {
+    setSearch('')
+    setEstado('')
+    setZona('')
+    setOrigen('')
+    setIngresoMin('')
+    setIngresoMax('')
+    setFechaDesde('')
+    setFechaHasta('')
+    setPage(1)
+  }
+
+  // Función para abrir modal de eliminación
+  const openDeleteModal = (leadId: string, leadName: string) => {
+    setDeleteModal({
+      isOpen: true,
+      leadId,
+      leadName
+    })
+  }
+
+  // Función para cerrar modal de eliminación
+  const closeDeleteModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      leadId: '',
+      leadName: ''
+    })
+  }
+
+  // Función para confirmar eliminación
+  const confirmDeleteLead = async () => {
+    try {
+      setDeletingId(deleteModal.leadId)
+      const response = await fetch(`/api/leads/${deleteModal.leadId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error al eliminar el lead')
+      }
+
+      // Actualizar la lista de leads
+      await fetchAllLeads()
+      await fetchLeads()
+
+      // Mostrar mensaje de éxito
+      addToast({
+        type: 'success',
+        title: 'Lead eliminado',
+        description: 'El lead ha sido eliminado exitosamente'
+      })
     } catch (error) {
-      console.error('Error fetching leads:', error)
+      console.error('Error eliminando lead:', error)
+      addToast({
+        type: 'error',
+        title: 'Error al eliminar',
+        description: error instanceof Error ? error.message : 'Error al eliminar el lead'
+      })
+      throw error // Re-throw para que el modal maneje el error
     } finally {
-      setLoading(false)
+      setDeletingId(null)
+    }
+  }
+
+  // Funciones para edición rápida
+  const startQuickEdit = (leadId: string, field: 'estado' | 'notas', currentValue: string) => {
+    setEditingField({
+      leadId,
+      field,
+      value: currentValue || ''
+    })
+  }
+
+  const cancelQuickEdit = () => {
+    setEditingField(null)
+  }
+
+  const saveQuickEdit = async () => {
+    if (!editingField) return
+
+    try {
+      setUpdatingId(editingField.leadId)
+
+      const updateData = {
+        [editingField.field]: editingField.value
+      }
+
+      const response = await fetch(`/api/leads/${editingField.leadId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updateData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error al actualizar el lead')
+      }
+
+      // Actualizar la lista de leads
+      await fetchAllLeads()
+      await fetchLeads()
+
+      setEditingField(null)
+      addToast({
+        type: 'success',
+        title: 'Lead actualizado',
+        description: `${editingField.field === 'estado' ? 'Estado' : 'Notas'} actualizado exitosamente`
+      })
+    } catch (error) {
+      console.error('Error actualizando lead:', error)
+      addToast({
+        type: 'error',
+        title: 'Error al actualizar',
+        description: error instanceof Error ? error.message : 'Error al actualizar el lead'
+      })
+    } finally {
+      setUpdatingId(null)
     }
   }
 
   useEffect(() => {
     fetchLeads()
-  }, [page, search, estado, origen])
+  }, [page, search, estado, origen, zona, ingresoMin, ingresoMax, fechaDesde, fechaHasta])
 
   useEffect(() => {
     fetchAllLeads() // Cargar todos los leads para contadores dinámicos
@@ -129,7 +321,7 @@ export default function LeadsPage() {
     let filterText = ''
     if (estado) filterText += ` por estado: ${estado}`
     if (origen) filterText += ` por origen: ${origen}`
-    if (search) filterText += ` por búsqueda: "${search}"`
+    if (search) filterText += ` por búsqueda: &quot;${search}&quot;`
 
     return `Leads (${filteredCount})(filtrado${filterText})`
   }
@@ -213,30 +405,41 @@ export default function LeadsPage() {
               <Download className="w-4 h-4 mr-2" />
               Exportar CSV
             </Button>
-            <Button asChild className="gradient-primary text-white hover-lift">
-              <Link href="/leads/new">
-                <Plus className="w-4 h-4 mr-2" />
-                Nuevo Lead
-              </Link>
-            </Button>
+            <ConditionalRender permission="leads:write">
+              <Button asChild className="gradient-primary text-white hover-lift">
+                <Link href="/leads/new">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nuevo Lead
+                </Link>
+              </Button>
+            </ConditionalRender>
           </div>
         </div>
 
         {/* Métricas rápidas */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-          <Card className="formosa-card">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-                  <Users className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{allLeads.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Leads</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {allLeads.length === 0 && loading ? (
+            <>
+              <MetricCardSkeleton />
+              <MetricCardSkeleton />
+              <MetricCardSkeleton />
+              <MetricCardSkeleton />
+            </>
+          ) : (
+            <>
+              <Card className="formosa-card">
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
+                      <Users className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{allLeads.length}</p>
+                      <p className="text-sm text-muted-foreground">Total Leads</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
           <Card className="formosa-card">
             <CardContent className="p-6">
@@ -270,22 +473,32 @@ export default function LeadsPage() {
             </CardContent>
           </Card>
 
-          <Card className="formosa-card">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
-                  <Plus className="h-6 w-6 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">
-                    {getEstadoCount('NUEVO')}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Nuevos</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card className="formosa-card">
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
+                      <Plus className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">
+                        {getEstadoCount('NUEVO')}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Nuevos</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
+
+        {/* Búsqueda Avanzada */}
+        <AdvancedSearch
+          onSearch={handleAdvancedSearch}
+          onClear={handleClearFilters}
+          loading={loading}
+          totalResults={totalLeads}
+        />
 
         {/* Filtros rápidos con badges */}
         <Card className="formosa-card">
@@ -318,45 +531,8 @@ export default function LeadsPage() {
                 ))}
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Buscar leads..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <select
-              value={estado}
-              onChange={(e) => setEstado(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">Todos los estados ({allLeads.length})</option>
-              <option value="NUEVO">Nuevo ({getEstadoCount('NUEVO')})</option>
-              <option value="EN_REVISION">En Revisión ({getEstadoCount('EN_REVISION')})</option>
-              <option value="PREAPROBADO">Preaprobado ({getEstadoCount('PREAPROBADO')})</option>
-              <option value="RECHAZADO">Rechazado ({getEstadoCount('RECHAZADO')})</option>
-              <option value="DOC_PENDIENTE">Doc. Pendiente ({getEstadoCount('DOC_PENDIENTE')})</option>
-              <option value="DERIVADO">Derivado ({getEstadoCount('DERIVADO')})</option>
-            </select>
-            <select
-              value={origen}
-              onChange={(e) => setOrigen(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">Todos los orígenes</option>
-              <option value="whatsapp">WhatsApp</option>
-              <option value="instagram">Instagram</option>
-              <option value="facebook">Facebook</option>
-              <option value="web">Web</option>
-              <option value="ads">Ads</option>
-            </select>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
         {/* Lista de leads mejorada */}
         <Card className="formosa-card">
@@ -383,7 +559,7 @@ export default function LeadsPage() {
                     )}
                     {search && (
                       <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
-                        Búsqueda: "{search}"
+                        Búsqueda: &quot;{search}&quot;
                       </Badge>
                     )}
                   </div>
@@ -396,33 +572,47 @@ export default function LeadsPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="formosa-card animate-pulse">
-                    <div className="p-4">
-                      <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : leads.length === 0 ? (
+              <LeadTableSkeleton rows={5} />
+            ) : loadingError ? (
               <div className="text-center py-12">
-                <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                  No se encontraron leads
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  No hay leads que coincidan con los filtros aplicados
-                </p>
-                <Button asChild className="gradient-primary text-white">
-                  <Link href="/leads/new">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Crear primer lead
-                  </Link>
+                <div className="text-red-500 mb-4">
+                  <p className="font-medium">Error al cargar los leads</p>
+                  <p className="text-sm">{loadingError}</p>
+                </div>
+                <Button onClick={fetchLeads} variant="outline">
+                  Reintentar
                 </Button>
               </div>
+            ) : leads.length === 0 ? (
+              search ? (
+                <EmptySearchState
+                  query={search}
+                  onClear={() => {
+                    setSearch('')
+                    setEstado('')
+                    setOrigen('')
+                    setZona('')
+                    setPage(1)
+                  }}
+                  type="leads"
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                    No se encontraron leads
+                  </h3>
+                  <p className="text-gray-500 mb-4">
+                    No hay leads que coincidan con los filtros aplicados
+                  </p>
+                  <Button asChild className="gradient-primary text-white">
+                    <Link href="/leads/new">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Crear primer lead
+                    </Link>
+                  </Button>
+                </div>
+              )
             ) : (
               <div className="space-y-3">
                 {leads.map((lead, index) => (
@@ -445,7 +635,50 @@ export default function LeadsPage() {
                               {lead.nombre}
                             </Link>
                             <div className="flex items-center space-x-2 mt-1">
-                              {getEstadoBadge(lead.estado)}
+                              {/* Estado editable */}
+                              {editingField?.leadId === lead.id && editingField?.field === 'estado' ? (
+                                <div className="flex items-center space-x-2">
+                                  <select
+                                    value={editingField.value}
+                                    onChange={(e) => setEditingField({...editingField, value: e.target.value})}
+                                    className="text-xs border rounded px-2 py-1"
+                                    disabled={updatingId === lead.id}
+                                  >
+                                    <option value="NUEVO">Nuevo</option>
+                                    <option value="EN_REVISION">En Revisión</option>
+                                    <option value="PREAPROBADO">Preaprobado</option>
+                                    <option value="RECHAZADO">Rechazado</option>
+                                    <option value="DOC_PENDIENTE">Doc. Pendiente</option>
+                                    <option value="DERIVADO">Derivado</option>
+                                  </select>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={saveQuickEdit}
+                                    disabled={updatingId === lead.id}
+                                    className="h-6 w-6 p-0 text-green-600 hover:bg-green-50"
+                                  >
+                                    ✓
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={cancelQuickEdit}
+                                    disabled={updatingId === lead.id}
+                                    className="h-6 w-6 p-0 text-red-600 hover:bg-red-50"
+                                  >
+                                    ✕
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div
+                                  className="cursor-pointer hover:opacity-80 transition-opacity"
+                                  onClick={() => startQuickEdit(lead.id, 'estado', lead.estado)}
+                                  title="Click para editar estado"
+                                >
+                                  {getEstadoBadge(lead.estado)}
+                                </div>
+                              )}
                               {lead.origen && (
                                 <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700">
                                   {lead.origen}
@@ -471,15 +704,99 @@ export default function LeadsPage() {
                           <div className="text-xs text-gray-400">
                             📅 {formatDate(new Date(lead.createdAt))}
                           </div>
+
+                          {/* Notas editables */}
+                          <div className="mt-2">
+                            {editingField?.leadId === lead.id && editingField?.field === 'notas' ? (
+                              <div className="space-y-2">
+                                <textarea
+                                  value={editingField.value}
+                                  onChange={(e) => setEditingField({...editingField, value: e.target.value})}
+                                  className="w-full text-xs border rounded px-2 py-1 resize-none"
+                                  rows={2}
+                                  placeholder="Agregar notas..."
+                                  disabled={updatingId === lead.id}
+                                />
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={saveQuickEdit}
+                                    disabled={updatingId === lead.id}
+                                    className="h-6 px-2 text-green-600 hover:bg-green-50"
+                                  >
+                                    ✓ Guardar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={cancelQuickEdit}
+                                    disabled={updatingId === lead.id}
+                                    className="h-6 px-2 text-red-600 hover:bg-red-50"
+                                  >
+                                    ✕ Cancelar
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div
+                                className="cursor-pointer hover:bg-gray-50 rounded px-2 py-1 transition-colors"
+                                onClick={() => startQuickEdit(lead.id, 'notas', lead.notas || '')}
+                                title="Click para editar notas"
+                              >
+                                {lead.notas ? (
+                                  <div className="text-xs text-gray-600">
+                                    📝 {lead.notas.length > 50 ? `${lead.notas.substring(0, 50)}...` : lead.notas}
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-gray-400 italic">
+                                    📝 Click para agregar notas
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Pipeline Stage Indicator */}
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <PipelineStageIndicator
+                              leadId={lead.id}
+                              compact={true}
+                              showTransitions={true}
+                            />
+                          </div>
                         </div>
                       </div>
 
                       <div className="flex items-center space-x-2">
-                        <Button asChild variant="ghost" size="sm" className="hover:bg-blue-50">
+                        <Button asChild variant="ghost" size="sm" className="hover:bg-blue-50" title="Ver detalles">
                           <Link href={`/leads/${lead.id}`}>
-                            Ver Detalles
+                            <Eye className="h-4 w-4" />
                           </Link>
                         </Button>
+                        <ConditionalRender permission="leads:write">
+                          <Button asChild variant="ghost" size="sm" className="hover:bg-green-50" title="Editar lead">
+                            <Link href={`/leads/${lead.id}/edit`}>
+                              <Edit className="h-4 w-4 text-green-600" />
+                            </Link>
+                          </Button>
+                        </ConditionalRender>
+                        <ConditionalRender permission="leads:delete">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-red-50"
+                            title="Eliminar lead"
+                            onClick={() => openDeleteModal(lead.id, lead.nombre)}
+                            disabled={deletingId === lead.id}
+                          >
+                            {deletingId === lead.id ? (
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                            ) : (
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            )}
+                          </Button>
+                        </ConditionalRender>
                       </div>
                     </div>
                   </div>
@@ -537,6 +854,28 @@ export default function LeadsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal de confirmación de eliminación */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDeleteLead}
+        title="Eliminar Lead"
+        description="¿Estás seguro de que quieres eliminar este lead? Se perderán todos los datos asociados incluyendo historial de interacciones y documentos."
+        itemName={deleteModal.leadName}
+        loading={deletingId === deleteModal.leadId}
+      />
     </div>
   )
 }
+
+// Envolver con PermissionGuard
+function ProtectedLeadsPage() {
+  return (
+    <PermissionGuard permission="leads:read" route="/leads">
+      <LeadsPage />
+    </PermissionGuard>
+  )
+}
+
+export { ProtectedLeadsPage as default }

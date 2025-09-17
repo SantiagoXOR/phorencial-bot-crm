@@ -21,7 +21,8 @@ test.describe('🔐 Autenticación del CRM Phorencial', () => {
       await expect(page.locator(UI_SELECTORS.NAV_DOCUMENTS)).toBeVisible();
       
       // Verificar información del usuario en el sidebar
-      await expect(page.locator('text=Admin Usuario')).toBeVisible();
+      await expect(page.locator('[data-testid="user-info"]')).toBeVisible();
+      await expect(page.locator('[data-testid="user-name"]')).toBeVisible();
       
       await utils.takeScreenshot('admin-dashboard');
     });

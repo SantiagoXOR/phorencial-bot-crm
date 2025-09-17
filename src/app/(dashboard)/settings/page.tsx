@@ -23,6 +23,7 @@ import {
   Edit
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { NotificationSettings } from "@/components/notifications/NotificationSettings"
 
 // Datos específicos de Formosa
 const ZONAS_FORMOSA = [
@@ -301,25 +302,7 @@ export default function SettingsPage() {
   )
 
   const renderNotificationsSettings = () => (
-    <Card className="formosa-card">
-      <CardHeader>
-        <CardTitle>Configuración de Notificaciones</CardTitle>
-        <CardDescription>
-          Gestión de alertas y notificaciones del sistema
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="text-center py-8">
-          <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">
-            Próximamente
-          </h3>
-          <p className="text-gray-500">
-            La configuración de notificaciones estará disponible en una próxima actualización
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    <NotificationSettings />
   )
 
   const renderContent = () => {

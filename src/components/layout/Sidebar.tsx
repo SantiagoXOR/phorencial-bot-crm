@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
@@ -14,12 +14,15 @@ import {
   BarChart3,
   Settings,
   Shield,
+  TrendingUp,
   Menu,
   X,
   LogOut,
   ChevronDown,
-  Bell
+  Bell,
+  Zap
 } from "lucide-react"
+import NotificationCenter from '@/components/notifications/NotificationCenter'
 
 interface NavigationItem {
   name: string
@@ -29,7 +32,8 @@ interface NavigationItem {
   children?: NavigationItem[]
 }
 
-const navigation: NavigationItem[] = [
+// Función para crear la navegación con contadores dinámicos
+const createNavigation = (leadsCount: number): NavigationItem[] => [
   {
     name: "Dashboard",
     href: "/dashboard",
@@ -39,7 +43,7 @@ const navigation: NavigationItem[] = [
     name: "Leads",
     href: "/leads",
     icon: Users,
-    badge: "1,247"
+    badge: leadsCount.toLocaleString()
   },
   {
     name: "Documents", // Nueva página
@@ -53,6 +57,16 @@ const navigation: NavigationItem[] = [
     icon: BarChart3
   },
   {
+    name: "Pipeline",
+    href: "/pipeline",
+    icon: TrendingUp
+  },
+  {
+    name: "Automatizaciones",
+    href: "/automation",
+    icon: Zap
+  },
+  {
     name: "Settings", // Nueva página
     href: "/settings",
     icon: Settings
@@ -60,7 +74,19 @@ const navigation: NavigationItem[] = [
   {
     name: "Admin",
     href: "/admin",
-    icon: Shield
+    icon: Shield,
+    children: [
+      {
+        name: "Usuarios",
+        href: "/admin/users",
+        icon: Users
+      },
+      {
+        name: "Roles y Permisos",
+        href: "/admin/roles",
+        icon: Shield
+      }
+    ]
   }
 ]
 
@@ -71,8 +97,27 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [expandedItems, setExpandedItems] = useState<string[]>([])
+  const [leadsCount, setLeadsCount] = useState(0)
   const pathname = usePathname()
   const { data: session } = useSession()
+
+  // Obtener contador de leads dinámicamente
+  useEffect(() => {
+    const fetchLeadsCount = async () => {
+      try {
+        const response = await fetch('/api/dashboard/metrics')
+        if (response.ok) {
+          const data = await response.json()
+          setLeadsCount(data.totalLeads || 0)
+        }
+      } catch (error) {
+        console.error('Error fetching leads count:', error)
+        setLeadsCount(0)
+      }
+    }
+
+    fetchLeadsCount()
+  }, [])
 
   const toggleExpanded = (itemName: string) => {
     setExpandedItems(prev => 
@@ -136,7 +181,7 @@ export function Sidebar({ className }: SidebarProps) {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            {navigation.map((item) => {
+            {createNavigation(leadsCount).map((item) => {
               const active = isActive(item.href)
               const expanded = expandedItems.includes(item.name)
               
@@ -212,31 +257,21 @@ export function Sidebar({ className }: SidebarProps) {
           {/* User section */}
           <div className="p-4 border-t border-white/10">
             {/* Notifications */}
-            <div className="mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/10"
-              >
-                <Bell className="h-4 w-4 mr-2" />
-                <span>Notificaciones</span>
-                <Badge variant="destructive" className="ml-auto">
-                  3
-                </Badge>
-              </Button>
+            <div className="mb-4 flex justify-center">
+              <NotificationCenter className="" />
             </div>
 
             {/* User info */}
             <div className="space-y-2">
-              <div className="flex items-center space-x-3 p-2 rounded-lg bg-white/5">
+              <div className="flex items-center space-x-3 p-2 rounded-lg bg-white/5" data-testid="user-info">
                 <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-medium text-sm">U</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">
+                  <p className="text-sm font-medium text-white truncate" data-testid="user-name">
                     {session?.user?.name || 'Usuario'}
                   </p>
-                  <p className="text-xs text-gray-400 truncate">
+                  <p className="text-xs text-gray-400 truncate" data-testid="user-email">
                     {session?.user?.email || 'email@ejemplo.com'}
                   </p>
                 </div>
@@ -263,9 +298,30 @@ export function Sidebar({ className }: SidebarProps) {
 // Hook para obtener información de navegación
 export function useNavigation() {
   const pathname = usePathname()
-  
+  const [leadsCount, setLeadsCount] = useState(0)
+
+  // Obtener contador de leads para el hook
+  useEffect(() => {
+    const fetchLeadsCount = async () => {
+      try {
+        const response = await fetch('/api/dashboard/metrics')
+        if (response.ok) {
+          const data = await response.json()
+          setLeadsCount(data.totalLeads || 0)
+        }
+      } catch (error) {
+        console.error('Error fetching leads count:', error)
+        setLeadsCount(0)
+      }
+    }
+
+    fetchLeadsCount()
+  }, [])
+
+  const navigation = createNavigation(leadsCount)
+
   const getCurrentPage = () => {
-    const currentItem = navigation.find(item => 
+    const currentItem = navigation.find(item =>
       pathname === item.href || pathname.startsWith(item.href + "/")
     )
     return currentItem?.name || "Dashboard"

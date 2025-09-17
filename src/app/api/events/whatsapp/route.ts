@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
     let lead = await leadService.getLeads({
       q: normalizedPhone,
       limit: 1,
+      sortOrder: 'desc' as const
     })
 
     let leadId: string | undefined
@@ -37,7 +38,8 @@ export async function POST(request: NextRequest) {
       const newLead = await leadService.createLead({
         nombre: `Lead WhatsApp ${normalizedPhone}`,
         telefono: normalizedPhone,
-        origen: 'whatsapp',
+        origen: 'whatsapp' as const,
+        estado: 'NUEVO' as const
       })
       leadId = newLead.id
     } else {

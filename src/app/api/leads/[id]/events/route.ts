@@ -92,7 +92,7 @@ export async function POST(
       tipo: body.tipo,
       payload: {
         ...body.payload,
-        createdBy: session.user.id,
+        createdBy: session.user?.id || '',
         createdAt: new Date().toISOString()
       }
     })
@@ -101,7 +101,7 @@ export async function POST(
       leadId,
       eventId: event.id,
       tipo: body.tipo,
-      createdBy: session.user.id
+      createdBy: session.user?.id || ''
     })
 
     return NextResponse.json(event, { status: 201 })

@@ -1,4 +1,6 @@
-// Basic test to verify Jest setup
+import { describe, it, expect, vi } from 'vitest'
+
+// Basic test to verify Vitest setup
 describe('Basic Tests', () => {
   it('should pass a simple test', () => {
     expect(1 + 1).toBe(2)
@@ -32,7 +34,7 @@ describe('Environment Setup', () => {
 // Test mocking
 describe('Mocking Tests', () => {
   it('should mock functions', () => {
-    const mockFn = jest.fn()
+    const mockFn = vi.fn()
     mockFn('test')
     
     expect(mockFn).toHaveBeenCalledWith('test')
@@ -40,7 +42,7 @@ describe('Mocking Tests', () => {
   })
 
   it('should mock return values', () => {
-    const mockFn = jest.fn().mockReturnValue('mocked')
+    const mockFn = vi.fn().mockReturnValue('mocked')
     
     expect(mockFn()).toBe('mocked')
   })

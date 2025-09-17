@@ -1,7 +1,8 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { WhatsAppService } from '../whatsapp-service'
 
 // Mock fetch
-const mockFetch = jest.fn()
+const mockFetch = vi.fn()
 global.fetch = mockFetch
 
 describe('WhatsAppService', () => {

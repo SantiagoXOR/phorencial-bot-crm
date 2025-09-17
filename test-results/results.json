@@ -10,9 +10,7 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {
-      "actualWorkers": 2
-    },
+    "metadata": {},
     "preserveOutput": "always",
     "reporter": [
       [
@@ -42,9 +40,7 @@
         "outputDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
+        "metadata": {},
         "id": "chromium",
         "name": "chromium",
         "testDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/tests",
@@ -52,15 +48,13 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
+        "metadata": {},
         "id": "firefox",
         "name": "firefox",
         "testDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/tests",
@@ -68,15 +62,13 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
+        "metadata": {},
         "id": "webkit",
         "name": "webkit",
         "testDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/tests",
@@ -84,15 +76,13 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
+        "metadata": {},
         "id": "Mobile Chrome",
         "name": "Mobile Chrome",
         "testDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/tests",
@@ -100,15 +90,13 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
+        "metadata": {},
         "id": "Mobile Safari",
         "name": "Mobile Safari",
         "testDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/tests",
@@ -116,15 +104,13 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
+        "metadata": {},
         "id": "Microsoft Edge",
         "name": "Microsoft Edge",
         "testDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/tests",
@@ -132,15 +118,13 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
+        "metadata": {},
         "id": "Google Chrome",
         "name": "Google Chrome",
         "testDir": "C:/Users/Santiago Martinez/Documents/augment-projects/PHORENCIAL BOT CRM/tests",
@@ -148,7 +132,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       }
     ],
     "shard": null,
@@ -156,444 +140,27 @@
     "updateSourceMethod": "patch",
     "version": "1.55.0",
     "workers": 2,
-    "webServer": {
-      "command": "npm run dev",
-      "url": "http://localhost:3000",
-      "reuseExistingServer": true,
-      "timeout": 120000
-    }
+    "webServer": null
   },
-  "suites": [
+  "suites": [],
+  "errors": [
     {
-      "title": "leads.spec.ts",
-      "file": "leads.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "👥 Gestión de Leads del CRM Phorencial",
-          "file": "leads.spec.ts",
-          "line": 5,
-          "column": 6,
-          "specs": [],
-          "suites": [
-            {
-              "title": "Sistema de filtros avanzado",
-              "file": "leads.spec.ts",
-              "line": 59,
-              "column": 8,
-              "specs": [
-                {
-                  "title": "🔍 Filtros básicos disponibles",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
-                        {
-                          "workerIndex": 0,
-                          "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 24192,
-                          "error": {
-                            "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"/dashboard\" until \"load\"\n============================================================",
-                            "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"/dashboard\" until \"load\"\n============================================================\n    at TestUtils.login (C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts:22:21)\n    at C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\leads.spec.ts:10:5",
-                            "location": {
-                              "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                              "column": 21,
-                              "line": 22
-                            },
-                            "snippet": "\u001b[90m   at \u001b[39mutils.ts:22\n\n\u001b[0m \u001b[90m 20 |\u001b[39m     \n \u001b[90m 21 |\u001b[39m     \u001b[90m// Esperar redirección al dashboard\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 22 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForURL(\u001b[32m'/dashboard'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mNAVIGATION\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 23 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(\u001b[33mUI_SELECTORS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mDASHBOARD_TITLE\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mMEDIUM\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 24 |\u001b[39m   }\n \u001b[90m 25 |\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                                "column": 21,
-                                "line": 22
-                              },
-                              "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"/dashboard\" until \"load\"\n============================================================\n\n\u001b[90m   at \u001b[39mutils.ts:22\n\n\u001b[0m \u001b[90m 20 |\u001b[39m     \n \u001b[90m 21 |\u001b[39m     \u001b[90m// Esperar redirección al dashboard\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 22 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForURL(\u001b[32m'/dashboard'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mNAVIGATION\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 23 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(\u001b[33mUI_SELECTORS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mDASHBOARD_TITLE\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mMEDIUM\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 24 |\u001b[39m   }\n \u001b[90m 25 |\u001b[39m\u001b[0m\n\u001b[2m    at TestUtils.login (C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts:22:21)\u001b[22m\n\u001b[2m    at C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\leads.spec.ts:10:5\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-08-25T15:47:36.810Z",
-                          "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--4d09d-Filtros-básicos-disponibles-chromium\\test-failed-1.png"
-                            },
-                            {
-                              "name": "video",
-                              "contentType": "video/webm",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--4d09d-Filtros-básicos-disponibles-chromium\\video.webm"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--4d09d-Filtros-básicos-disponibles-chromium\\error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                            "column": 21,
-                            "line": 22
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "fcfff6a3ac56cb081a53-e2a7aee2afc8ad96638c",
-                  "file": "leads.spec.ts",
-                  "line": 60,
-                  "column": 9
-                },
-                {
-                  "title": "📊 Contadores dinámicos exactos",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
-                        {
-                          "workerIndex": 1,
-                          "parallelIndex": 1,
-                          "status": "failed",
-                          "duration": 21886,
-                          "error": {
-                            "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('h1:has-text(\"Dashboard\")') to be visible\u001b[22m\n",
-                            "stack": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('h1:has-text(\"Dashboard\")') to be visible\u001b[22m\n\n    at TestUtils.login (C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts:23:21)\n    at C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\leads.spec.ts:10:5",
-                            "location": {
-                              "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                              "column": 21,
-                              "line": 23
-                            },
-                            "snippet": "\u001b[90m   at \u001b[39mutils.ts:23\n\n\u001b[0m \u001b[90m 21 |\u001b[39m     \u001b[90m// Esperar redirección al dashboard\u001b[39m\n \u001b[90m 22 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForURL(\u001b[32m'/dashboard'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mNAVIGATION\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(\u001b[33mUI_SELECTORS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mDASHBOARD_TITLE\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mMEDIUM\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m   }\n \u001b[90m 25 |\u001b[39m\n \u001b[90m 26 |\u001b[39m   \u001b[90m/**\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                                "column": 21,
-                                "line": 23
-                              },
-                              "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('h1:has-text(\"Dashboard\")') to be visible\u001b[22m\n\n\n\u001b[90m   at \u001b[39mutils.ts:23\n\n\u001b[0m \u001b[90m 21 |\u001b[39m     \u001b[90m// Esperar redirección al dashboard\u001b[39m\n \u001b[90m 22 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForURL(\u001b[32m'/dashboard'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mNAVIGATION\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(\u001b[33mUI_SELECTORS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mDASHBOARD_TITLE\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mMEDIUM\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m   }\n \u001b[90m 25 |\u001b[39m\n \u001b[90m 26 |\u001b[39m   \u001b[90m/**\u001b[39m\u001b[0m\n\u001b[2m    at TestUtils.login (C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts:23:21)\u001b[22m\n\u001b[2m    at C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\leads.spec.ts:10:5\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-08-25T15:47:36.953Z",
-                          "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--676e3-ontadores-dinámicos-exactos-chromium\\test-failed-1.png"
-                            },
-                            {
-                              "name": "video",
-                              "contentType": "video/webm",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--676e3-ontadores-dinámicos-exactos-chromium\\video.webm"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--676e3-ontadores-dinámicos-exactos-chromium\\error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                            "column": 21,
-                            "line": 23
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "fcfff6a3ac56cb081a53-d59402e84068fd3d0c7b",
-                  "file": "leads.spec.ts",
-                  "line": 76,
-                  "column": 9
-                },
-                {
-                  "title": "🏷️ Filtrado por estado con contadores exactos",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
-                        {
-                          "workerIndex": 2,
-                          "parallelIndex": 1,
-                          "status": "failed",
-                          "duration": 37984,
-                          "error": {
-                            "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"/leads\" until \"load\"\n============================================================",
-                            "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"/leads\" until \"load\"\n============================================================\n    at TestUtils.navigateToPage (C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts:46:21)\n    at C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\leads.spec.ts:11:5",
-                            "location": {
-                              "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                              "column": 21,
-                              "line": 46
-                            },
-                            "snippet": "\u001b[90m   at \u001b[39mutils.ts:46\n\n\u001b[0m \u001b[90m 44 |\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mclick(selectors[page])\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 46 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForURL(\u001b[32m`/${page}`\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mNAVIGATION\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 47 |\u001b[39m   }\n \u001b[90m 48 |\u001b[39m\n \u001b[90m 49 |\u001b[39m   \u001b[90m/**\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                                "column": 21,
-                                "line": 46
-                              },
-                              "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"/leads\" until \"load\"\n============================================================\n\n\u001b[90m   at \u001b[39mutils.ts:46\n\n\u001b[0m \u001b[90m 44 |\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mclick(selectors[page])\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 46 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForURL(\u001b[32m`/${page}`\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mNAVIGATION\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 47 |\u001b[39m   }\n \u001b[90m 48 |\u001b[39m\n \u001b[90m 49 |\u001b[39m   \u001b[90m/**\u001b[39m\u001b[0m\n\u001b[2m    at TestUtils.navigateToPage (C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts:46:21)\u001b[22m\n\u001b[2m    at C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\leads.spec.ts:11:5\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-08-25T15:48:21.358Z",
-                          "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--ddee0-tado-con-contadores-exactos-chromium\\test-failed-1.png"
-                            },
-                            {
-                              "name": "video",
-                              "contentType": "video/webm",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--ddee0-tado-con-contadores-exactos-chromium\\video.webm"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--ddee0-tado-con-contadores-exactos-chromium\\error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                            "column": 21,
-                            "line": 46
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "fcfff6a3ac56cb081a53-52893c9d2ebbf2316083",
-                  "file": "leads.spec.ts",
-                  "line": 95,
-                  "column": 9
-                },
-                {
-                  "title": "🗺️ Filtrado por zonas geográficas de Formosa",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
-                        {
-                          "workerIndex": 3,
-                          "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 32229,
-                          "error": {
-                            "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"/dashboard\" until \"load\"\n============================================================",
-                            "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"/dashboard\" until \"load\"\n============================================================\n    at TestUtils.login (C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts:22:21)\n    at C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\leads.spec.ts:10:5",
-                            "location": {
-                              "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                              "column": 21,
-                              "line": 22
-                            },
-                            "snippet": "\u001b[90m   at \u001b[39mutils.ts:22\n\n\u001b[0m \u001b[90m 20 |\u001b[39m     \n \u001b[90m 21 |\u001b[39m     \u001b[90m// Esperar redirección al dashboard\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 22 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForURL(\u001b[32m'/dashboard'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mNAVIGATION\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 23 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(\u001b[33mUI_SELECTORS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mDASHBOARD_TITLE\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mMEDIUM\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 24 |\u001b[39m   }\n \u001b[90m 25 |\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                                "column": 21,
-                                "line": 22
-                              },
-                              "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"/dashboard\" until \"load\"\n============================================================\n\n\u001b[90m   at \u001b[39mutils.ts:22\n\n\u001b[0m \u001b[90m 20 |\u001b[39m     \n \u001b[90m 21 |\u001b[39m     \u001b[90m// Esperar redirección al dashboard\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 22 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForURL(\u001b[32m'/dashboard'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mNAVIGATION\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 23 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(\u001b[33mUI_SELECTORS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mDASHBOARD_TITLE\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[33mTIMEOUTS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mMEDIUM\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 24 |\u001b[39m   }\n \u001b[90m 25 |\u001b[39m\u001b[0m\n\u001b[2m    at TestUtils.login (C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts:22:21)\u001b[22m\n\u001b[2m    at C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\leads.spec.ts:10:5\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-08-25T15:48:35.396Z",
-                          "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--36960-onas-geográficas-de-Formosa-chromium\\test-failed-1.png"
-                            },
-                            {
-                              "name": "video",
-                              "contentType": "video/webm",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--36960-onas-geográficas-de-Formosa-chromium\\video.webm"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--36960-onas-geográficas-de-Formosa-chromium\\error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                            "column": 21,
-                            "line": 22
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "fcfff6a3ac56cb081a53-c2a1b9a5d727381061ce",
-                  "file": "leads.spec.ts",
-                  "line": 122,
-                  "column": 9
-                },
-                {
-                  "title": "🔍 Búsqueda por nombre, teléfono y email",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
-                        {
-                          "workerIndex": 4,
-                          "parallelIndex": 1,
-                          "status": "passed",
-                          "duration": 19656,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-08-25T15:49:16.454Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "fcfff6a3ac56cb081a53-9ad30d0cb1466c2c2d1a",
-                  "file": "leads.spec.ts",
-                  "line": 141,
-                  "column": 9
-                },
-                {
-                  "title": "🔄 Combinación de filtros múltiples",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
-                        {
-                          "workerIndex": 5,
-                          "parallelIndex": 0,
-                          "status": "timedOut",
-                          "duration": 65227,
-                          "error": {
-                            "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
-                            "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
-                          },
-                          "errors": [
-                            {
-                              "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
-                            },
-                            {
-                              "location": {
-                                "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts",
-                                "column": 21,
-                                "line": 93
-                              },
-                              "message": "Error: page.selectOption: Test timeout of 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('select[name=\"estado\"]')\u001b[22m\n\n\n\u001b[90m   at \u001b[39mutils.ts:93\n\n\u001b[0m \u001b[90m 91 |\u001b[39m \u001b[90m   */\u001b[39m\n \u001b[90m 92 |\u001b[39m   \u001b[36masync\u001b[39m filterByEstado(estado\u001b[33m:\u001b[39m string) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 93 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mselectOption(\u001b[33mUI_SELECTORS\u001b[39m\u001b[33m.\u001b[39m\u001b[33mESTADO_FILTER\u001b[39m\u001b[33m,\u001b[39m estado)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 94 |\u001b[39m     \n \u001b[90m 95 |\u001b[39m     \u001b[90m// Esperar a que la tabla se actualice\u001b[39m\n \u001b[90m 96 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForTimeout(\u001b[35m1000\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at TestUtils.filterByEstado (C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\utils.ts:93:21)\u001b[22m\n\u001b[2m    at C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\leads.spec.ts:169:19\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-08-25T15:49:40.794Z",
-                          "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--f4174-nación-de-filtros-múltiples-chromium\\test-failed-1.png"
-                            },
-                            {
-                              "name": "video",
-                              "contentType": "video/webm",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--f4174-nación-de-filtros-múltiples-chromium\\video.webm"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\test-results\\leads-👥-Gestión-de-Leads--f4174-nación-de-filtros-múltiples-chromium\\error-context.md"
-                            }
-                          ]
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "fcfff6a3ac56cb081a53-37416035c393249456af",
-                  "file": "leads.spec.ts",
-                  "line": 167,
-                  "column": 9
-                }
-              ]
-            }
-          ]
-        }
-      ]
+      "message": "Error: Setup falló: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/\", waiting until \"networkidle\"\u001b[22m\n",
+      "stack": "Error: Setup falló: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/\", waiting until \"networkidle\"\u001b[22m\n\n    at globalSetup (C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\global-setup.ts:32:11)",
+      "location": {
+        "file": "C:\\Users\\Santiago Martinez\\Documents\\augment-projects\\PHORENCIAL BOT CRM\\tests\\global-setup.ts",
+        "column": 11,
+        "line": 32
+      },
+      "snippet": "\u001b[90m   at \u001b[39mglobal-setup.ts:32\n\n\u001b[0m \u001b[90m 30 |\u001b[39m   } \u001b[36mcatch\u001b[39m (error) {\n \u001b[90m 31 |\u001b[39m     console\u001b[33m.\u001b[39merror(\u001b[32m'❌ Error en setup global:'\u001b[39m\u001b[33m,\u001b[39m error)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 32 |\u001b[39m     \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Setup falló: ${error}`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m           \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 33 |\u001b[39m   } \u001b[36mfinally\u001b[39m {\n \u001b[90m 34 |\u001b[39m     \u001b[36mawait\u001b[39m browser\u001b[33m.\u001b[39mclose()\u001b[33m;\u001b[39m\n \u001b[90m 35 |\u001b[39m   }\u001b[0m"
     }
   ],
-  "errors": [],
   "stats": {
-    "startTime": "2025-08-25T15:47:29.184Z",
-    "duration": 208035.562,
-    "expected": 1,
+    "startTime": "2025-09-17T19:22:21.347Z",
+    "duration": 4616.617,
+    "expected": 0,
     "skipped": 0,
-    "unexpected": 5,
+    "unexpected": 0,
     "flaky": 0
   }
 }

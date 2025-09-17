@@ -3,43 +3,69 @@ import { NextResponse } from 'next/server'
 
 export default withAuth(
   function middleware(req) {
+    // Skip ALL requests with RSC parameters - this is critical for Next.js 14
+    const url = req.nextUrl
+    if (url.searchParams.has('_rsc')) {
+      return NextResponse.next()
+    }
+
+    // Skip internal Next.js requests and static assets
+    if (
+      url.pathname.startsWith('/_next') ||
+      url.pathname.startsWith('/api/auth') ||
+      url.pathname.startsWith('/api/_next') ||
+      url.pathname.startsWith('/monitoring') ||
+      url.pathname.includes('__nextjs_original-stack-frame') ||
+      url.pathname.startsWith('/favicon.ico') ||
+      url.pathname.endsWith('.js') ||
+      url.pathname.endsWith('.css') ||
+      url.pathname.endsWith('.map') ||
+      url.pathname.endsWith('.ico')
+    ) {
+      return NextResponse.next()
+    }
+
     const token = req.nextauth.token
     const isAuth = !!token
-    const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
-    const isProtectedPage = ['/dashboard', '/leads', '/reports', '/settings'].some(path =>
-      req.nextUrl.pathname.startsWith(path)
-    )
 
-    // Si está autenticado y trata de acceder a auth, redirigir a dashboard
-    if (isAuthPage && isAuth) {
+    // Redirect authenticated users away from auth pages
+    if (url.pathname.startsWith('/auth') && isAuth) {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
 
-    // Si no está autenticado y trata de acceder a páginas protegidas
-    if (!isAuth && isProtectedPage) {
-      let from = req.nextUrl.pathname
-      if (req.nextUrl.search) {
-        from += req.nextUrl.search
-      }
-
-      return NextResponse.redirect(
-        new URL(`/auth/signin?from=${encodeURIComponent(from)}`, req.url)
-      )
+    // Admin access control
+    if (isAuth && url.pathname.startsWith('/admin') && token?.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
     }
+
+    return NextResponse.next()
   },
   {
+    pages: {
+      signIn: '/auth/signin',
+    },
     callbacks: {
-      authorized: ({ token }) => true, // Permitir acceso, el middleware maneja la lógica
+      authorized: ({ token, req }) => {
+        // Always allow RSC requests
+        if (req.nextUrl.searchParams.has('_rsc')) {
+          return true
+        }
+
+        // Allow auth pages without token
+        if (req.nextUrl.pathname.startsWith('/auth')) {
+          return true
+        }
+
+        // Protected pages require token
+        return !!token
+      },
     },
   }
 )
 
 export const config = {
   matcher: [
-    '/dashboard/:path*',
-    '/leads/:path*',
-    '/reports/:path*',
-    '/settings/:path*',
-    '/auth/signin',
+    // Only match specific routes, exclude API routes and static files
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*$).*)',
   ],
 }

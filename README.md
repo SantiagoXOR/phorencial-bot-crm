@@ -2,22 +2,40 @@
 
 ## 📋 Descripción
 
-**CRM Phorencial** es un sistema de gestión de leads específicamente diseñado para la provincia de Formosa, Argentina. Combina una **UI moderna y atractiva** con **funcionalidades robustas** y **datos reales** específicos para el mercado local.
+**CRM Phorencial** es un sistema de gestión de leads específicamente diseñado para la provincia de Formosa, Argentina.
 
-### ✨ Características Principales
+**🚧 ESTADO ACTUAL:** Sistema en desarrollo activo con funcionalidades básicas implementadas. Ver [Plan de Implementación](docs/PLAN-IMPLEMENTACION-CRM-PHORENCIAL.md) para roadmap completo.
 
-- 🎨 **UI Moderna**: Diseño con gradientes, animaciones y efectos visuales
-- 📊 **Dashboard Avanzado**: Métricas KPI y gráficos en tiempo real
-- 👥 **Gestión de Leads**: Sistema completo con filtros avanzados
-- 📁 **Gestión de Documentos**: Upload y categorización de documentos por lead
-- ⚙️ **Configuración Específica**: Zonas geográficas y códigos de área de Formosa
-- 🔍 **Filtros Inteligentes**: Contadores dinámicos exactos por estado
-- 📱 **Responsive Design**: Optimizado para desktop y mobile
-- 🔗 **Integración WhatsApp**: Recepción automática de mensajes vía webhooks
-- 🎯 **Pre-calificación**: Sistema de scoring basado en reglas configurables
-- 📈 **Reportes Avanzados**: KPIs, exportación CSV y reportes automáticos
-- 🔐 **RBAC**: Control de acceso basado en roles (Admin, Analista, Vendedor)
-- 📝 **Audit Trail**: Registro completo de eventos y cambios
+**📊 COMPLETITUD:** ~35% implementado
+
+- ✅ Arquitectura base y APIs básicas
+- 🔄 UI y funcionalidades en desarrollo
+- ❌ Tests E2E y integraciones pendientes
+
+### ✨ Características Implementadas
+
+#### **✅ Completamente Funcionales**
+
+- 🏗️ **Arquitectura Moderna**: Next.js 14 + TypeScript + Supabase
+- 🔐 **Autenticación**: Sistema de login con NextAuth.js
+- 📊 **APIs Básicas**: CRUD de leads, dashboard, pipeline
+- 🎨 **Componentes UI**: shadcn/ui + componentes personalizados
+- 📱 **Responsive Design**: Layout adaptativo básico
+
+#### **🔄 En Desarrollo**
+
+- 👥 **Gestión de Leads**: CRUD básico implementado, filtros avanzados pendientes
+- 📊 **Dashboard**: Estructura creada, métricas en desarrollo
+- 📁 **Gestión de Documentos**: UI creada, funcionalidad backend pendiente
+- ⚙️ **Configuración**: Páginas creadas, integración pendiente
+
+#### **❌ Pendientes de Implementar**
+
+- 🔗 **Integración WhatsApp**: Solo documentación
+- 🎯 **Sistema de Scoring**: Planificado
+- 📈 **Reportes Avanzados**: En roadmap
+- 🔍 **Filtros Inteligentes**: Básicos implementados
+- 📝 **Audit Trail**: Estructura básica
 
 ## 🏗 Arquitectura Técnica
 

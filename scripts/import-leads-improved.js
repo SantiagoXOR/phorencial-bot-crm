@@ -1,6 +1,5 @@
 const fs = require('fs');
 const { PrismaClient } = require('@prisma/client');
-const { JSDOM } = require('jsdom');
 
 const prisma = new PrismaClient();
 
@@ -40,16 +39,59 @@ function generarNombreAleatorio() {
 
 function limpiarTexto(texto) {
   if (!texto) return '';
-  
-  // Remover HTML tags
-  texto = texto.replace(/<[^>]*>/g, '');
-  
-  // Remover caracteres especiales y espacios extra
-  texto = texto.replace(/[^\w\s\-\.@áéíóúñÁÉÍÓÚÑ]/g, '');
-  texto = texto.trim();
+
+  // Limpiar texto preservando nombres válidos
+  texto = texto.toString().trim();
+
+  // Remover comillas extra que pueden venir del CSV
+  texto = texto.replace(/^["']|["']$/g, '');
+
+  // Normalizar espacios múltiples pero preservar caracteres válidos
   texto = texto.replace(/\s+/g, ' ');
-  
+
   return texto;
+}
+
+function parsearCSV(contenidoCSV) {
+  const lineas = contenidoCSV.split('\n');
+  const headers = lineas[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+  const datos = [];
+
+  for (let i = 1; i < lineas.length; i++) {
+    const linea = lineas[i].trim();
+    if (!linea) continue;
+
+    // Parsear CSV respetando comillas
+    const campos = [];
+    let campoActual = '';
+    let dentroComillas = false;
+
+    for (let j = 0; j < linea.length; j++) {
+      const char = linea[j];
+
+      if (char === '"' && (j === 0 || linea[j-1] === ',')) {
+        dentroComillas = true;
+      } else if (char === '"' && dentroComillas && (j === linea.length - 1 || linea[j+1] === ',')) {
+        dentroComillas = false;
+      } else if (char === ',' && !dentroComillas) {
+        campos.push(campoActual.trim());
+        campoActual = '';
+      } else {
+        campoActual += char;
+      }
+    }
+    campos.push(campoActual.trim()); // Agregar el último campo
+
+    if (campos.length >= headers.length) {
+      const fila = {};
+      headers.forEach((header, index) => {
+        fila[header] = campos[index] || '';
+      });
+      datos.push(fila);
+    }
+  }
+
+  return datos;
 }
 
 function formatearTelefono(telefono) {
@@ -95,16 +137,30 @@ function formatearIngresos(ingresos) {
 
 function mapearEstado(estado) {
   if (!estado) return 'NUEVO';
-  
+
   const estadoLimpio = limpiarTexto(estado).toLowerCase();
-  
+
   if (estadoLimpio.includes('preaprobado')) return 'PREAPROBADO';
   if (estadoLimpio.includes('denegado') || estadoLimpio.includes('rechazado')) return 'RECHAZADO';
   if (estadoLimpio.includes('documentacion') || estadoLimpio.includes('esperando')) return 'DOC_PENDIENTE';
   if (estadoLimpio.includes('derivado')) return 'DERIVADO';
   if (estadoLimpio.includes('revision')) return 'EN_REVISION';
-  
+
   return 'NUEVO';
+}
+
+function validarNombre(nombre) {
+  if (!nombre) return false;
+
+  const nombreLimpio = limpiarTexto(nombre);
+
+  // Rechazar nombres claramente inválidos
+  if (nombreLimpio.length < 2) return false;
+  if (nombreLimpio.toLowerCase() === 'nombre') return false;
+  if (nombreLimpio.toLowerCase() === 'nombre completo') return false;
+  if (/^[0-9]+$/.test(nombreLimpio)) return false; // Solo números
+
+  return true;
 }
 
 function extraerZona(zonaTexto) {
@@ -126,54 +182,48 @@ function extraerZona(zonaTexto) {
   return zona || ZONAS_FORMOSA[Math.floor(Math.random() * ZONAS_FORMOSA.length)];
 }
 
-async function importarLeadsDesdeHTML() {
+async function importarLeadsDesdeCSV() {
   try {
-    console.log('🚀 Iniciando importación mejorada de leads desde HTML...');
-    
-    // Leer el archivo HTML
-    const htmlContent = fs.readFileSync('Hoja 2.html', 'utf8');
-    const dom = new JSDOM(htmlContent);
-    const document = dom.window.document;
-    
-    // Encontrar todas las filas de la tabla (excluyendo header)
-    const filas = document.querySelectorAll('tr');
-    console.log(`📊 Encontradas ${filas.length} filas en total`);
-    
+    console.log('🚀 Iniciando importación mejorada de leads desde CSV...');
+
+    // Leer el archivo CSV
+    const csvContent = fs.readFileSync('BASE DE CONSULTAS - Hoja 2.csv', 'utf8');
+    const datos = parsearCSV(csvContent);
+
+    console.log(`📊 Encontradas ${datos.length} filas de datos en el CSV`);
+
     let leadsCreados = 0;
     let errores = 0;
-    
-    // Procesar cada fila (empezar desde la fila 2 para saltar headers)
-    for (let i = 2; i < filas.length; i++) {
+    let nombresInvalidos = 0;
+
+    // Procesar cada fila de datos
+    for (let i = 0; i < datos.length; i++) {
       try {
-        const fila = filas[i];
-        const celdas = fila.querySelectorAll('td');
-        
-        if (celdas.length < 8) {
-          console.log(`⚠️  Fila ${i} tiene pocas celdas, saltando...`);
+        const fila = datos[i];
+
+        // Extraer datos usando los headers del CSV
+        let nombre = limpiarTexto(fila['NOMBRE COMPLETO'] || '');
+        const dni = limpiarTexto(fila['DNI'] || '');
+        const trabajo = limpiarTexto(fila['TRABAJO'] || '');
+        const ingresosTexto = fila['INGRESOS'] || '';
+        const telefono = limpiarTexto(fila['TELEFONO'] || '');
+        const zonaTexto = fila['ZONA'] || '';
+        const estadoTexto = fila['ESTADO'] || '';
+        const notasTexto = fila['Notas'] || '';
+
+        // Validar nombre - CORREGIDO: No reemplazar nombres válidos
+        if (!validarNombre(nombre)) {
+          console.log(`⚠️  Fila ${i + 2}: Nombre inválido "${nombre}", saltando...`);
+          nombresInvalidos++;
           continue;
         }
-        
-        // Extraer datos de cada celda
-        let nombre = limpiarTexto(celdas[0]?.textContent || '');
-        const dni = limpiarTexto(celdas[1]?.textContent || '');
-        const trabajo = limpiarTexto(celdas[2]?.textContent || '');
-        const ingresosTexto = celdas[3]?.textContent || '';
-        const telefono = limpiarTexto(celdas[5]?.textContent || '');
-        const zonaTexto = celdas[6]?.textContent || '';
-        const estadoTexto = celdas[8]?.textContent || '';
-        
-        // Validar y limpiar nombre
-        if (!nombre || nombre.toLowerCase() === 'nombre' || nombre.length < 3) {
-          nombre = generarNombreAleatorio();
-          console.log(`📝 Generado nombre aleatorio: ${nombre}`);
-        }
-        
+
         // Formatear datos
         const telefonoFormateado = formatearTelefono(telefono);
         const ingresos = formatearIngresos(ingresosTexto);
         const estado = mapearEstado(estadoTexto);
         const zona = extraerZona(zonaTexto);
-        
+
         // Generar email basado en el nombre
         const emailBase = nombre.toLowerCase()
           .replace(/\s+/g, '.')
@@ -182,38 +232,59 @@ async function importarLeadsDesdeHTML() {
             return map[match] || match;
           });
         const email = `${emailBase}@email.com`;
-        
+
         // Crear el lead
         const leadData = {
           nombre,
           telefono: telefonoFormateado,
           email,
           estado,
-          origen: 'excel',
+          origen: 'csv',
           ingresos,
           zona,
-          trabajo: trabajo || 'No especificado',
           dni: dni || null,
-          notas: `Importado desde Excel - Fila ${i}`
+          notas: notasTexto ? `${notasTexto} - Importado desde CSV` : `Importado desde CSV - Fila ${i + 2}`
         };
-        
+
         await prisma.lead.create({ data: leadData });
         leadsCreados++;
-        
+
         if (leadsCreados % 100 === 0) {
           console.log(`✅ Procesados ${leadsCreados} leads...`);
         }
-        
+
+        // Log específico para echeverria
+        if (nombre.toLowerCase().includes('echeverria')) {
+          console.log(`🎯 IMPORTADO: ${nombre} - Fila ${i + 2}`);
+        }
+
       } catch (error) {
         errores++;
-        console.error(`❌ Error procesando fila ${i}:`, error.message);
+        console.error(`❌ Error procesando fila ${i + 2}:`, error.message);
       }
     }
-    
-    console.log(`\n🎉 Importación completada!`);
+
+    console.log(`\n🎉 Importación desde CSV completada!`);
     console.log(`✅ Leads creados: ${leadsCreados}`);
+    console.log(`⚠️  Nombres inválidos saltados: ${nombresInvalidos}`);
     console.log(`❌ Errores: ${errores}`);
-    
+
+    // Verificar que echeverria se importó correctamente
+    console.log('\n🔍 Verificando importación de "echeverria"...');
+    const echeverriaLeads = await prisma.lead.findMany({
+      where: {
+        nombre: {
+          contains: 'echeverria',
+          mode: 'insensitive'
+        }
+      }
+    });
+
+    console.log(`🎯 Leads con "echeverria" encontrados: ${echeverriaLeads.length}`);
+    echeverriaLeads.forEach(lead => {
+      console.log(`  ✅ ${lead.nombre} (ID: ${lead.id})`);
+    });
+
   } catch (error) {
     console.error('💥 Error en la importación:', error);
   } finally {
@@ -223,7 +294,7 @@ async function importarLeadsDesdeHTML() {
 
 // Ejecutar si es llamado directamente
 if (require.main === module) {
-  importarLeadsDesdeHTML();
+  importarLeadsDesdeCSV();
 }
 
-module.exports = { importarLeadsDesdeHTML };
+module.exports = { importarLeadsDesdeCSV };

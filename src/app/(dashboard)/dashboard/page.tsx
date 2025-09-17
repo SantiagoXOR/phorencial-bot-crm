@@ -67,6 +67,15 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Hook de métricas de Formosa (debe estar al inicio)
+  const formosaMetrics = useFormosaMetrics({
+    totalLeads: metrics?.totalLeads || 0,
+    leadsThisMonth: metrics?.leadsThisMonth || 0,
+    conversionRate: metrics?.conversionRate || 0,
+    projectedRevenue: metrics?.projectedRevenue || 215400000,
+    leadsByStatus: metrics?.leadsByStatus || {}
+  })
+
   // Funciones para contadores dinámicos exactos
   const getEstadoCount = (estadoFilter: string) => {
     return allLeads.filter(lead => lead.estado === estadoFilter).length
@@ -229,14 +238,7 @@ export default function DashboardPage() {
     })
   }
 
-  // Preparar métricas para los nuevos componentes
-  const formosaMetrics = useFormosaMetrics({
-    totalLeads: metrics.totalLeads,
-    leadsThisMonth: metrics.leadsThisMonth,
-    conversionRate: metrics.conversionRate,
-    projectedRevenue: metrics.projectedRevenue || 215400000, // Valor por defecto
-    leadsByStatus: metrics.leadsByStatus
-  })
+
 
   return (
     <div className="min-h-screen bg-gradient-subtle">

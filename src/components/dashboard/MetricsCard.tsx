@@ -58,10 +58,13 @@ export function MetricsCard({
   }
 
   return (
-    <Card className={cn(
-      "relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 border-0",
-      className
-    )}>
+    <Card
+      data-testid="metrics-card"
+      className={cn(
+        "relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 border-0",
+        className
+      )}
+    >
       {/* Gradient background */}
       <div className={cn(
         "absolute inset-0 opacity-5",

@@ -74,13 +74,13 @@ export function FormosaMetricsCard({
   }
 
   return (
-    <Card 
+    <Card
+      data-testid="formosa-metrics-card"
       className={cn(
         "formosa-card hover-lift transition-all duration-300 cursor-pointer",
         variantStyles[variant],
         className
       )}
-      data-testid="formosa-metrics-card"
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-gray-700">

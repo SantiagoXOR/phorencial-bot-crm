@@ -79,13 +79,39 @@ export class LeadService {
     return this.leadRepo.findMany(query)
   }
 
+  async deleteLead(id: string, userId?: string) {
+    try {
+      // Verificar que el lead existe antes de eliminarlo
+      const existingLead = await this.leadRepo.findById(id)
+      if (!existingLead) {
+        throw new Error('Lead not found')
+      }
+
+      // Crear evento antes de eliminar
+      await this.eventRepo.create({
+        leadId: id,
+        tipo: 'lead_deleted',
+        payload: { userId, leadData: existingLead },
+      })
+
+      // Eliminar el lead usando el repositorio
+      await this.leadRepo.delete(id)
+
+      logger.info('Lead deleted', { leadId: id }, { userId, leadId: id })
+
+    } catch (error) {
+      logger.error('Error deleting lead', { error, leadId: id }, { userId, leadId: id })
+      throw error
+    }
+  }
+
   async deriveLead(id: string, agencia: string, userId?: string) {
     try {
       const lead = await this.leadRepo.update(id, {
         agencia,
         estado: 'DERIVADO',
       })
-      
+
       await this.eventRepo.create({
         leadId: id,
         tipo: 'lead_derived',
@@ -93,7 +119,7 @@ export class LeadService {
       })
 
       logger.info('Lead derived', { leadId: id, agencia }, { userId, leadId: id })
-      
+
       return lead
     } catch (error) {
       logger.error('Error deriving lead', { error, leadId: id }, { userId, leadId: id })

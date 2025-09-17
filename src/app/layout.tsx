@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Providers from '@/components/providers'
+import { SentryErrorBoundary } from '@/components/monitoring/PerformanceWrapper'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -18,9 +19,11 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <Providers>
-          {children}
-        </Providers>
+        <SentryErrorBoundary>
+          <Providers>
+            {children}
+          </Providers>
+        </SentryErrorBoundary>
       </body>
     </html>
   )

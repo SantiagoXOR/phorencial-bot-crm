@@ -193,7 +193,7 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm text-gray-600">
-              <p>• Esta herramienta actualiza leads con nombres genéricos ("Nombre") por nombres argentinos realistas</p>
+              <p>• Esta herramienta actualiza leads con nombres genéricos (&quot;Nombre&quot;) por nombres argentinos realistas</p>
               <p>• Completa teléfonos incompletos con números de Formosa</p>
               <p>• Asigna zonas aleatorias de Formosa a leads sin zona</p>
               <p>• Genera ingresos realistas para leads sin esta información</p>

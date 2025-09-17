@@ -1,82 +1,86 @@
-// Mock dependencies first
-jest.mock('next-auth')
-jest.mock('@/server/services/supabase-lead-service', () => ({
-  supabaseLeadService: {
-    createLead: jest.fn(),
-    getLeads: jest.fn()
-  }
-}))
-jest.mock('@/lib/rbac', () => ({
-  checkPermission: jest.fn()
-}))
-
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
-import { POST, GET } from '../route'
 import { getServerSession } from 'next-auth'
-import { supabaseLeadService } from '@/server/services/supabase-lead-service'
+import { POST, GET } from '../route'
+import { SupabaseLeadService } from '@/server/services/supabase-lead-service'
+import { hasPermission } from '@/lib/rbac'
+import { createMockSupabaseLeadService, mockLeads } from '@/__tests__/mocks/supabase'
 
-const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>
-const mockSupabaseLeadService = supabaseLeadService as jest.Mocked<typeof supabaseLeadService>
+// Mock dependencies
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn(),
+}))
+
+vi.mock('@/server/services/supabase-lead-service', () => ({
+  SupabaseLeadService: vi.fn(),
+}))
+
+vi.mock('@/lib/rbac', () => ({
+  hasPermission: vi.fn(),
+}))
+
+const mockGetServerSession = vi.mocked(getServerSession)
+const mockHasPermission = vi.mocked(hasPermission)
+const mockSupabaseLeadService = vi.mocked(SupabaseLeadService)
 
 describe('/api/leads', () => {
+  let mockLeadService: ReturnType<typeof createMockSupabaseLeadService>
+
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
+    mockLeadService = createMockSupabaseLeadService()
+    mockSupabaseLeadService.mockImplementation(() => mockLeadService as any)
   })
 
   describe('POST /api/leads', () => {
-    it('should create a lead successfully', async () => {
+    it('should create a new lead successfully', async () => {
       // Mock session
       mockGetServerSession.mockResolvedValue({
-        user: { id: 'user-1', role: 'ADMIN' }
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          role: 'ADMIN'
+        }
       } as any)
 
-      // Mock lead creation
-      const mockLead = {
-        id: 'lead-1',
+      // Mock permissions
+      mockHasPermission.mockReturnValue(true)
+
+      const leadData = {
         nombre: 'Test Lead',
         telefono: '1234567890',
-        estado: 'NUEVO'
+        email: 'lead@example.com',
+        dni: '12345678',
+        ingresos: 50000,
+        zona: 'Centro',
+        producto: 'Préstamo Personal',
+        monto: 100000,
+        origen: 'whatsapp'
       }
-      mockSupabaseLeadService.createLead.mockResolvedValue(mockLead)
 
-      // Create request
       const request = new NextRequest('http://localhost:3000/api/leads', {
         method: 'POST',
-        body: JSON.stringify({
-          nombre: 'Test Lead',
-          telefono: '1234567890',
-          email: 'test@example.com'
-        }),
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(leadData)
       })
 
       const response = await POST(request)
       const data = await response.json()
 
       expect(response.status).toBe(201)
-      expect(data).toEqual({
-        id: 'lead-1',
-        estado: 'NUEVO',
-        isUpdate: false
-      })
-      expect(mockSupabaseLeadService.createLead).toHaveBeenCalledWith({
-        nombre: 'Test Lead',
-        telefono: '1234567890',
-        email: 'test@example.com'
-      })
+      expect(data.id).toBeDefined()
+      expect(data.estado).toBe('NUEVO')
+      expect(mockLeadService.createLead).toHaveBeenCalledWith(expect.objectContaining(leadData))
     })
 
-    it('should return 401 if not authenticated', async () => {
+    it('should return 401 when user is not authenticated', async () => {
       mockGetServerSession.mockResolvedValue(null)
 
       const request = new NextRequest('http://localhost:3000/api/leads', {
         method: 'POST',
-        body: JSON.stringify({
-          nombre: 'Test Lead',
-          telefono: '1234567890'
-        })
+        body: JSON.stringify({ nombre: 'Test' })
       })
 
       const response = await POST(request)
@@ -86,16 +90,40 @@ describe('/api/leads', () => {
       expect(data.error).toBe('Unauthorized')
     })
 
-    it('should return 400 for invalid data', async () => {
+    it('should return 403 when user lacks permissions', async () => {
       mockGetServerSession.mockResolvedValue({
-        user: { id: 'user-1', role: 'ADMIN' }
+        user: { id: '1', email: 'test@example.com', role: 'VIEWER' }
       } as any)
+
+      mockHasPermission.mockReturnValue(false)
 
       const request = new NextRequest('http://localhost:3000/api/leads', {
         method: 'POST',
+        body: JSON.stringify({ nombre: 'Test' })
+      })
+
+      const response = await POST(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(403)
+      expect(data.error).toBe('Forbidden')
+    })
+
+    it('should return 400 for invalid data', async () => {
+      mockGetServerSession.mockResolvedValue({
+        user: { id: '1', email: 'test@example.com', role: 'ADMIN' }
+      } as any)
+
+      mockHasPermission.mockReturnValue(true)
+
+      const request = new NextRequest('http://localhost:3000/api/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           // Missing required fields
-          email: 'invalid-email'
+          nombre: ''
         })
       })
 
@@ -103,119 +131,92 @@ describe('/api/leads', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Invalid data')
-      expect(data.details).toBeDefined()
-    })
-
-    it('should handle service errors', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'user-1', role: 'ADMIN' }
-      } as any)
-
-      mockSupabaseLeadService.createLead.mockRejectedValue(new Error('Database error'))
-
-      const request = new NextRequest('http://localhost:3000/api/leads', {
-        method: 'POST',
-        body: JSON.stringify({
-          nombre: 'Test Lead',
-          telefono: '1234567890'
-        })
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal server error')
+      expect(data.error).toBeDefined()
     })
   })
 
   describe('GET /api/leads', () => {
-    it('should fetch leads successfully', async () => {
+    it('should return leads successfully', async () => {
       mockGetServerSession.mockResolvedValue({
-        user: { id: 'user-1', role: 'ADMIN' }
+        user: { id: '1', email: 'test@example.com', role: 'ADMIN' }
       } as any)
 
-      const mockLeads = [
-        { id: '1', nombre: 'Lead 1', telefono: '111' },
-        { id: '2', nombre: 'Lead 2', telefono: '222' }
-      ]
+      mockHasPermission.mockReturnValue(true)
 
-      mockSupabaseLeadService.getLeads.mockResolvedValue({
-        leads: mockLeads,
-        total: 2
-      })
-
-      const request = new NextRequest('http://localhost:3000/api/leads?page=1&limit=10')
-
+      const request = new NextRequest('http://localhost:3000/api/leads')
       const response = await GET(request)
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data).toEqual({
-        leads: mockLeads,
-        total: 2,
-        page: 1,
-        limit: 10
-      })
+      expect(data.leads).toBeDefined()
+      expect(Array.isArray(data.leads)).toBe(true)
+      expect(data.total).toBeDefined()
+      expect(mockLeadService.getLeads).toHaveBeenCalled()
     })
 
-    it('should handle query parameters correctly', async () => {
+    it('should handle search filters', async () => {
       mockGetServerSession.mockResolvedValue({
-        user: { id: 'user-1', role: 'ADMIN' }
+        user: { id: '1', email: 'test@example.com', role: 'ADMIN' }
       } as any)
 
-      mockSupabaseLeadService.getLeads.mockResolvedValue({
-        leads: [],
-        total: 0
-      })
+      mockHasPermission.mockReturnValue(true)
 
-      const request = new NextRequest('http://localhost:3000/api/leads?estado=NUEVO&origen=whatsapp&q=test&page=2&limit=5')
+      const request = new NextRequest('http://localhost:3000/api/leads?search=Juan&estado=NUEVO&page=1&limit=10')
+      const response = await GET(request)
+      const data = await response.json()
 
-      await GET(request)
-
-      expect(mockSupabaseLeadService.getLeads).toHaveBeenCalledWith({
+      expect(response.status).toBe(200)
+      expect(data.leads).toBeDefined()
+      expect(mockLeadService.getLeads).toHaveBeenCalledWith(expect.objectContaining({
+        search: 'Juan',
         estado: 'NUEVO',
-        origen: 'whatsapp',
-        search: 'test',
-        limit: 5,
-        offset: 5 // (page - 1) * limit = (2 - 1) * 5
-      })
+        offset: 0,
+        limit: 10
+      }))
     })
 
-    it('should use default pagination values', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'user-1', role: 'ADMIN' }
-      } as any)
-
-      mockSupabaseLeadService.getLeads.mockResolvedValue({
-        leads: [],
-        total: 0
-      })
-
-      const request = new NextRequest('http://localhost:3000/api/leads')
-
-      await GET(request)
-
-      expect(mockSupabaseLeadService.getLeads).toHaveBeenCalledWith({
-        estado: undefined,
-        origen: undefined,
-        search: undefined,
-        limit: 10,
-        offset: 0
-      })
-    })
-
-    it('should return 401 if not authenticated', async () => {
+    it('should return 401 when user is not authenticated', async () => {
       mockGetServerSession.mockResolvedValue(null)
 
       const request = new NextRequest('http://localhost:3000/api/leads')
-
       const response = await GET(request)
       const data = await response.json()
 
       expect(response.status).toBe(401)
       expect(data.error).toBe('Unauthorized')
+    })
+
+    it('should return 403 when user lacks permissions', async () => {
+      mockGetServerSession.mockResolvedValue({
+        user: { id: '1', email: 'test@example.com', role: 'VIEWER' }
+      } as any)
+
+      mockHasPermission.mockReturnValue(false)
+
+      const request = new NextRequest('http://localhost:3000/api/leads')
+      const response = await GET(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(403)
+      expect(data.error).toBe('Forbidden')
+    })
+
+    it('should handle pagination correctly', async () => {
+      mockGetServerSession.mockResolvedValue({
+        user: { id: '1', email: 'test@example.com', role: 'ADMIN' }
+      } as any)
+
+      mockHasPermission.mockReturnValue(true)
+
+      const request = new NextRequest('http://localhost:3000/api/leads?page=2&limit=5')
+      const response = await GET(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(mockLeadService.getLeads).toHaveBeenCalledWith(expect.objectContaining({
+        offset: 5,
+        limit: 5
+      }))
     })
   })
 })

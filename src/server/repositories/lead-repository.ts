@@ -67,4 +67,8 @@ export class LeadRepository {
 
     return this.create(data)
   }
+
+  async delete(id: string) {
+    return supabase.deleteLead(id)
+  }
 }
