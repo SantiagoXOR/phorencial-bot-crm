@@ -6,22 +6,30 @@ import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import {
   Home,
+  MessageSquare,
+  Layers,
+  Bot,
+  Sparkles,
+  Tag,
   Users,
+  TrendingUp,
+  Zap,
   FileText,
   BarChart3,
   Settings,
   Shield,
-  TrendingUp,
   Menu,
   X,
   LogOut,
   ChevronDown,
-  Bell,
-  Zap
+  Radio,
+  Workflow
 } from "lucide-react"
+import { FMCLogo } from '@/components/branding/FMCLogo'
 import NotificationCenter from '@/components/notifications/NotificationCenter'
 
 interface NavigationItem {
@@ -30,31 +38,64 @@ interface NavigationItem {
   icon: any
   badge?: string | number
   children?: NavigationItem[]
+  isHeader?: boolean
 }
 
 // Función para crear la navegación con contadores dinámicos
 const createNavigation = (leadsCount: number): NavigationItem[] => [
+  // Sección Principal
   {
-    name: "Dashboard",
+    name: "Inicio",
     href: "/dashboard",
     icon: Home
   },
   {
-    name: "Leads",
+    name: "Chats",
+    href: "/chats",
+    icon: MessageSquare,
+    badge: "18" // TODO: hacer dinámico desde API
+  },
+  {
+    name: "Conexiones",
+    href: "/conexiones",
+    icon: Layers
+  },
+  
+  // Separador - Entrenamiento
+  {
+    name: "Entrenamiento",
+    href: "#",
+    icon: null,
+    isHeader: true
+  },
+  {
+    name: "Asistentes",
+    href: "/asistentes",
+    icon: Bot
+  },
+  {
+    name: "Testing",
+    href: "/testing",
+    icon: Sparkles
+  },
+  
+  // Separador - CRM
+  {
+    name: "CRM",
+    href: "#",
+    icon: null,
+    isHeader: true
+  },
+  {
+    name: "Smart Tags",
+    href: "/tags",
+    icon: Tag
+  },
+  {
+    name: "Contactos",
     href: "/leads",
     icon: Users,
     badge: leadsCount.toLocaleString()
-  },
-  {
-    name: "Documents", // Nueva página
-    href: "/documents",
-    icon: FileText,
-    badge: "12"
-  },
-  {
-    name: "Reportes",
-    href: "/reports",
-    icon: BarChart3
   },
   {
     name: "Pipeline",
@@ -67,7 +108,54 @@ const createNavigation = (leadsCount: number): NavigationItem[] => [
     icon: Zap
   },
   {
-    name: "Settings", // Nueva página
+    name: "Documentos",
+    href: "/documents",
+    icon: FileText,
+    badge: "12" // TODO: hacer dinámico desde API
+  },
+  {
+    name: "Reportes",
+    href: "/reports",
+    icon: BarChart3
+  },
+  
+  // Separador - Manychat
+  {
+    name: "Manychat",
+    href: "#",
+    icon: null,
+    isHeader: true
+  },
+  {
+    name: "Dashboard",
+    href: "/manychat/dashboard",
+    icon: Bot
+  },
+  {
+    name: "Broadcasts",
+    href: "/manychat/broadcasts",
+    icon: Radio
+  },
+  {
+    name: "Flujos",
+    href: "/manychat/flows",
+    icon: Workflow
+  },
+  {
+    name: "Configuración",
+    href: "/settings/manychat",
+    icon: Settings
+  },
+  
+  // Separador - Sistema
+  {
+    name: "Sistema",
+    href: "#",
+    icon: null,
+    isHeader: true
+  },
+  {
+    name: "Settings",
     href: "/settings",
     icon: Settings
   },
@@ -159,31 +247,34 @@ export function Sidebar({ className }: SidebarProps) {
         isOpen ? "translate-x-0" : "-translate-x-full",
         className
       )} data-testid="sidebar">
-        {/* Gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900" />
-        
-        {/* Glass effect overlay */}
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-xl" />
+        {/* Fondo claro estilo Prometheo */}
+        <div className="absolute inset-0 bg-gray-50" />
         
         <div className="relative flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-center h-16 px-4 border-b border-white/10" data-testid="sidebar-logo">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">P</span>
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-white">Phorencial</h1>
-                <p className="text-xs text-gray-300">CRM Formosa</p>
-              </div>
-            </div>
+          <div className="flex justify-center -my-6" data-testid="sidebar-logo">
+            <FMCLogo variant="icon" size="lg" />
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            {createNavigation(leadsCount).map((item) => {
+          <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+            {createNavigation(leadsCount).map((item, index) => {
               const active = isActive(item.href)
               const expanded = expandedItems.includes(item.name)
+              
+              // Si es un header, renderizar separador
+              if (item.isHeader) {
+                return (
+                  <div key={item.name} className="my-4">
+                    <Separator className="my-2" />
+                    <div className="px-3 py-2">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {item.name}
+                      </h3>
+                    </div>
+                  </div>
+                )
+              }
               
               return (
                 <div key={item.name}>
@@ -192,28 +283,30 @@ export function Sidebar({ className }: SidebarProps) {
                     className={cn(
                       "group flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
                       active
-                        ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30"
-                        : "text-gray-300 hover:text-white hover:bg-white/10"
+                        ? "bg-purple-100 text-purple-700 border border-purple-200"
+                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                     )}
                     onClick={() => setIsOpen(false)}
                   >
                     <div className="flex items-center space-x-3">
-                      <item.icon className={cn(
-                        "h-5 w-5 transition-colors",
-                        active ? "text-blue-400" : "text-gray-400 group-hover:text-white"
-                      )} />
+                      {item.icon && (
+                        <item.icon className={cn(
+                          "h-5 w-5 transition-colors",
+                          active ? "text-purple-600" : "text-gray-500 group-hover:text-gray-700"
+                        )} />
+                      )}
                       <span>{item.name}</span>
                     </div>
                     
                     <div className="flex items-center space-x-2">
                       {item.badge && (
                         <Badge 
-                          variant={active ? "default" : "secondary"}
+                          variant="secondary"
                           className={cn(
                             "text-xs",
                             active 
-                              ? "bg-blue-500 text-white" 
-                              : "bg-gray-700 text-gray-300"
+                              ? "bg-purple-200 text-purple-800" 
+                              : "bg-gray-200 text-gray-600"
                           )}
                         >
                           {item.badge}
@@ -236,12 +329,12 @@ export function Sidebar({ className }: SidebarProps) {
                         <Link
                           key={child.name}
                           href={child.href}
-                          className={cn(
-                            "block px-3 py-2 text-sm rounded-md transition-colors",
-                            isActive(child.href)
-                              ? "text-blue-400 bg-blue-500/10"
-                              : "text-gray-400 hover:text-white hover:bg-white/5"
-                          )}
+                            className={cn(
+                              "block px-3 py-2 text-sm rounded-md transition-colors",
+                              isActive(child.href)
+                                ? "text-purple-600 bg-purple-50"
+                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                            )}
                           onClick={() => setIsOpen(false)}
                         >
                           {child.name}
@@ -255,7 +348,7 @@ export function Sidebar({ className }: SidebarProps) {
           </nav>
 
           {/* User section */}
-          <div className="p-4 border-t border-white/10">
+          <div className="p-4 border-t border-gray-200">
             {/* Notifications */}
             <div className="mb-4 flex justify-center">
               <NotificationCenter className="" />
@@ -263,15 +356,17 @@ export function Sidebar({ className }: SidebarProps) {
 
             {/* User info */}
             <div className="space-y-2">
-              <div className="flex items-center space-x-3 p-2 rounded-lg bg-white/5" data-testid="user-info">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-medium text-sm">U</span>
+              <div className="flex items-center space-x-3 p-2 rounded-lg bg-gray-100" data-testid="user-info">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-medium text-sm">
+                    {session?.user?.name?.charAt(0) || 'U'}
+                  </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate" data-testid="user-name">
+                  <p className="text-sm font-medium text-gray-900 truncate" data-testid="user-name">
                     {session?.user?.name || 'Usuario'}
                   </p>
-                  <p className="text-xs text-gray-400 truncate" data-testid="user-email">
+                  <p className="text-xs text-gray-500 truncate" data-testid="user-email">
                     {session?.user?.email || 'email@ejemplo.com'}
                   </p>
                 </div>
@@ -280,7 +375,7 @@ export function Sidebar({ className }: SidebarProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start text-gray-300 hover:text-white hover:bg-red-500/20"
+                className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 onClick={() => signOut({ callbackUrl: '/auth/signin' })}
                 data-testid="logout-button"
               >

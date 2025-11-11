@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Header } from '@/components/layout/Header'
 import {
   TrendingUp,
   DollarSign,
@@ -16,7 +17,8 @@ import {
   Settings,
   Plus,
   Filter,
-  Download
+  Download,
+  AlertCircle
 } from 'lucide-react'
 import { PipelineBoardAdvanced } from '@/components/pipeline/PipelineBoardAdvanced'
 import { LoadingSpinner } from '@/components/ui/loading-states'
@@ -29,6 +31,7 @@ function PipelinePage() {
   const [stages, setStages] = useState<PipelineStage[]>([])
   const [leads, setLeads] = useState<PipelineLead[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [metrics, setMetrics] = useState<any>(null)
   const [activeTab, setActiveTab] = useState('board')
 
@@ -42,6 +45,7 @@ function PipelinePage() {
   const loadPipelineData = async () => {
     try {
       setIsLoading(true)
+      setError(null)
 
       // Cargar etapas y leads en paralelo
       const [stagesData, leadsData] = await Promise.all([
@@ -49,16 +53,35 @@ function PipelinePage() {
         pipelineService.getLeads()
       ])
 
+      // Validar que existan stages
+      if (!stagesData || stagesData.length === 0) {
+        // Crear stages por defecto si no existen
+        try {
+          await pipelineService.createDefaultStages()
+          // Recargar después de crear stages
+          return loadPipelineData()
+        } catch (createError) {
+          console.error('Error creating default stages:', createError)
+          setError('No se pudieron crear las etapas del pipeline. Contacta al administrador.')
+          return
+        }
+      }
+
       setStages(stagesData)
       setLeads(leadsData)
 
       // Cargar métricas
-      const metricsData = await pipelineService.getMetrics()
-      setMetrics(metricsData)
+      try {
+        const metricsData = await pipelineService.getMetrics()
+        setMetrics(metricsData)
+      } catch (metricsError) {
+        console.error('Error loading metrics:', metricsError)
+        // No es crítico, continuar sin métricas
+      }
 
     } catch (error) {
       console.error('Error loading pipeline data:', error)
-      toast.error('Error al cargar datos del pipeline')
+      setError(error instanceof Error ? error.message : 'Error al cargar datos del pipeline')
     } finally {
       setIsLoading(false)
     }
@@ -136,31 +159,39 @@ function PipelinePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Pipeline de Ventas</h1>
-          <p className="text-muted-foreground">
-            Gestiona y visualiza tu proceso de ventas completo
-          </p>
-        </div>
+      <Header
+        title="Pipeline de Ventas"
+        subtitle="Gestiona y visualiza tu proceso de ventas completo"
+        showNewButton={true}
+        newButtonText="Nuevo Lead"
+        newButtonHref="/leads/new"
+        showExportButton={true}
+      />
 
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            Configurar
-          </Button>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Lead
-          </Button>
-        </div>
-      </div>
+      <div className="p-6 space-y-6">
+        {/* Mostrar error si existe */}
+        {error && (
+          <Card className="bg-red-50 border-red-200">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="h-6 w-6 text-red-600" />
+                <div>
+                  <h3 className="font-semibold text-red-900">Error al cargar el pipeline</h3>
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+              <Button
+                onClick={loadPipelineData}
+                className="mt-4"
+                variant="outline"
+              >
+                Reintentar
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Métricas rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -297,6 +328,7 @@ function PipelinePage() {
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   )
 }

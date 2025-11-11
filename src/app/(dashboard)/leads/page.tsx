@@ -8,11 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatDate, formatCurrency, cn } from '@/lib/utils'
-import { Search, Plus, Filter, Download, Users, TrendingUp, Eye, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Plus, Filter, Download, Users, TrendingUp, Eye, Edit, Trash2, ChevronLeft, ChevronRight, Tag, RefreshCw, CheckCircle2 } from 'lucide-react'
+import { Header } from '@/components/layout/Header'
+import { TagPill } from '@/components/manychat/TagPill'
 import DeleteConfirmationModal from '@/components/ui/delete-confirmation-modal'
 import { useToast } from '@/components/ui/toast'
 import { PermissionGuard, usePermissions, ConditionalRender } from '@/components/auth/PermissionGuard'
-import { PipelineStageIndicator } from '@/components/pipeline/PipelineStageIndicator'
 import AdvancedSearch from '@/components/leads/AdvancedSearch'
 import {
   LoadingState,
@@ -34,6 +35,8 @@ interface Lead {
   zona?: string
   notas?: string
   createdAt: string
+  manychatId?: string
+  tags?: string | string[]
 }
 
 interface LeadsResponse {
@@ -390,31 +393,19 @@ function LeadsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header moderno */}
+      <Header
+        title="Gestión de Leads"
+        subtitle={getPageTitle()}
+        showNewButton={true}
+        newButtonText="Nuevo Lead"
+        newButtonHref="/leads/new"
+        showExportButton={true}
+        onExport={exportCSV}
+      />
+
       <div className="space-y-8 p-6">
-        {/* Header moderno */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold gradient-text">Gestión de Leads</h1>
-            <p className="text-muted-foreground mt-2">
-              {getPageTitle()}
-            </p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button onClick={exportCSV} variant="outline" className="hover-lift">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar CSV
-            </Button>
-            <ConditionalRender permission="leads:write">
-              <Button asChild className="gradient-primary text-white hover-lift">
-                <Link href="/leads/new">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nuevo Lead
-                </Link>
-              </Button>
-            </ConditionalRender>
-          </div>
-        </div>
 
         {/* Métricas rápidas */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
@@ -510,7 +501,7 @@ function LeadsPage() {
                   onClick={() => setEstado('')}
                   className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
                     !estado
-                      ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
+                      ? 'bg-purple-100 text-purple-800 border-2 border-purple-300'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -522,7 +513,7 @@ function LeadsPage() {
                     onClick={() => setEstado(est)}
                     className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
                       estado === est
-                        ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
+                        ? 'bg-purple-100 text-purple-800 border-2 border-purple-300'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -705,6 +696,32 @@ function LeadsPage() {
                             📅 {formatDate(new Date(lead.createdAt))}
                           </div>
 
+                          {/* Tags de Manychat */}
+                          {(() => {
+                            let leadTags: string[] = []
+                            if (lead.tags) {
+                              try {
+                                leadTags = typeof lead.tags === 'string' ? JSON.parse(lead.tags) : lead.tags
+                              } catch (e) {
+                                leadTags = []
+                              }
+                            }
+                            
+                            return leadTags.length > 0 ? (
+                              <div className="flex items-center gap-1 flex-wrap mt-2">
+                                <Tag className="w-3 h-3 text-gray-400" />
+                                {leadTags.slice(0, 3).map((tag) => (
+                                  <TagPill key={tag} tag={tag} readonly />
+                                ))}
+                                {leadTags.length > 3 && (
+                                  <span className="text-xs text-gray-500">
+                                    +{leadTags.length - 3}
+                                  </span>
+                                )}
+                              </div>
+                            ) : null
+                          })()}
+
                           {/* Notas editables */}
                           <div className="mt-2">
                             {editingField?.leadId === lead.id && editingField?.field === 'notas' ? (
@@ -757,18 +774,29 @@ function LeadsPage() {
                             )}
                           </div>
 
-                          {/* Pipeline Stage Indicator */}
-                          <div className="mt-3 pt-3 border-t border-gray-100">
-                            <PipelineStageIndicator
-                              leadId={lead.id}
-                              compact={true}
-                              showTransitions={true}
-                            />
-                          </div>
+                          {/* Estado simplificado */}
+                          {lead.estado && (
+                            <div className="mt-2">
+                              <div className="flex items-center space-x-2 text-xs">
+                                <span className="text-gray-500">Proceso:</span>
+                                <Badge variant="outline" className="text-xs bg-gray-50">
+                                  {lead.estado.replace('_', ' ')}
+                                </Badge>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       <div className="flex items-center space-x-2">
+                        {/* Indicador de sincronización con Manychat */}
+                        {lead.manychatId && (
+                          <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded" title="Sincronizado con Manychat">
+                            <CheckCircle2 className="w-3 h-3 text-green-600" />
+                            <span className="text-xs text-green-700">MC</span>
+                          </div>
+                        )}
+                        
                         <Button asChild variant="ghost" size="sm" className="hover:bg-blue-50" title="Ver detalles">
                           <Link href={`/leads/${lead.id}`}>
                             <Eye className="h-4 w-4" />

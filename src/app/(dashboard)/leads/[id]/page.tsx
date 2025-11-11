@@ -5,10 +5,17 @@ import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatDate, formatCurrency } from '@/lib/utils'
-import { ArrowLeft, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw, Tag, Bot } from 'lucide-react'
 import WhatsAppSender from '@/components/whatsapp/WhatsAppSender'
 import WhatsAppHistory from '@/components/whatsapp/WhatsAppHistory'
+import ManychatMessageSender from '@/components/manychat/ManychatMessageSender'
+import { ManychatTagManager } from '@/components/manychat/ManychatTagManager'
+import { ManychatSyncPanel } from '@/components/manychat/ManychatSyncPanel'
+import { ManychatBadge } from '@/components/manychat/ManychatBadge'
+import { TagPill } from '@/components/manychat/TagPill'
+import { useManychatSync } from '@/hooks/useManychatSync'
 
 interface Lead {
   id: string
@@ -121,16 +128,62 @@ export default function LeadDetailPage() {
     )
   }
 
+  const { isSynced, syncNow, syncStatus } = useManychatSync(lead.id)
+  
+  // Parsear tags si existen
+  let leadTags: string[] = []
+  if (lead.tags) {
+    try {
+      leadTags = typeof lead.tags === 'string' ? JSON.parse(lead.tags) : lead.tags
+    } catch (e) {
+      leadTags = []
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <Button variant="ghost" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver
-        </Button>
-        <h1 className="text-3xl font-bold">{lead.nombre}</h1>
-        {getEstadoBadge(lead.estado)}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" onClick={() => router.back()}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver
+          </Button>
+          <h1 className="text-3xl font-bold">{lead.nombre}</h1>
+          {getEstadoBadge(lead.estado)}
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {lead.manychatId && (
+            <ManychatBadge variant="success" size="md">
+              Sincronizado con Manychat
+            </ManychatBadge>
+          )}
+          {!lead.manychatId && isSynced === false && (
+            <Button
+              onClick={syncNow}
+              disabled={syncStatus === 'syncing'}
+              variant="outline"
+              size="sm"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
+              Sincronizar con Manychat
+            </Button>
+          )}
+        </div>
       </div>
+      
+      {/* Tags visibles en el header */}
+      {leadTags.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Tag className="w-4 h-4 text-gray-400" />
+          {leadTags.slice(0, 5).map((tag) => (
+            <TagPill key={tag} tag={tag} readonly />
+          ))}
+          {leadTags.length > 5 && (
+            <span className="text-sm text-gray-500">+{leadTags.length - 5} más</span>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Información del lead */}
@@ -279,23 +332,60 @@ export default function LeadDetailPage() {
             </Card>
           )}
 
-          {/* WhatsApp Integration */}
-          {lead.telefono && (
-            <>
-              <WhatsAppSender
-                leadId={lead.id}
-                telefono={lead.telefono}
-                onMessageSent={() => {
-                  // Refresh lead data or show success message
-                  window.location.reload()
-                }}
-              />
+          {/* Manychat Sync Panel */}
+          <ManychatSyncPanel
+            leadId={lead.id}
+            onSyncComplete={() => {
+              fetchLead()
+            }}
+          />
 
-              <WhatsAppHistory
-                leadId={lead.id}
-                telefono={lead.telefono}
-              />
-            </>
+          {/* WhatsApp/Manychat Integration con Tabs */}
+          {lead.telefono && (
+            <Card>
+              <Tabs defaultValue="send" className="w-full">
+                <CardHeader className="pb-3">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="send">Enviar</TabsTrigger>
+                    <TabsTrigger value="tags">
+                      <Tag className="w-3 h-3 mr-1" />
+                      Tags
+                    </TabsTrigger>
+                    <TabsTrigger value="history">Historial</TabsTrigger>
+                  </TabsList>
+                </CardHeader>
+                
+                <CardContent>
+                  <TabsContent value="send" className="mt-0">
+                    <ManychatMessageSender
+                      leadId={lead.id}
+                      telefono={lead.telefono}
+                      manychatId={lead.manychatId}
+                      onMessageSent={() => {
+                        fetchLead()
+                      }}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="tags" className="mt-0">
+                    <ManychatTagManager
+                      leadId={lead.id}
+                      initialTags={leadTags}
+                      onTagsChange={() => {
+                        fetchLead()
+                      }}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="history" className="mt-0">
+                    <WhatsAppHistory
+                      leadId={lead.id}
+                      telefono={lead.telefono}
+                    />
+                  </TabsContent>
+                </CardContent>
+              </Tabs>
+            </Card>
           )}
 
           <Card>

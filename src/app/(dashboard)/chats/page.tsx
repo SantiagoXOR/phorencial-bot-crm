@@ -1,0 +1,334 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Header } from '@/components/layout/Header'
+import { ChatList } from '@/components/chat/ChatList'
+import { ChatWindow } from '@/components/chat/ChatWindow'
+import { ChatSidebar } from '@/components/chat/ChatSidebar'
+import { cn } from '@/lib/utils'
+
+interface Message {
+  id: string
+  direction: 'inbound' | 'outbound'
+  content: string
+  messageType: string
+  sentAt: Date
+  readAt?: Date
+}
+
+interface Conversation {
+  id: string
+  platform: string
+  status: string
+  assignedTo?: string
+  lastMessageAt: string
+  createdAt: string
+  lead?: {
+    id: string
+    nombre: string
+    telefono: string
+    email?: string
+  }
+  assignedUser?: {
+    id: string
+    nombre: string
+    email: string
+  }
+  messages: Message[]
+}
+
+export default function ChatsPage() {
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | undefined>()
+  const [loading, setLoading] = useState(true)
+
+  // Cargar conversaciones al montar el componente
+  useEffect(() => {
+    fetchConversations()
+  }, [])
+
+  const fetchConversations = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/conversations?status=active')
+      
+      if (response.ok) {
+        const data = await response.json()
+        setConversations(data.conversations || [])
+      } else {
+        console.error('Error fetching conversations')
+        // Datos mock para desarrollo
+        setConversations(getMockConversations())
+      }
+    } catch (error) {
+      console.error('Error fetching conversations:', error)
+      // Datos mock para desarrollo
+      setConversations(getMockConversations())
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSelectConversation = async (conversation: Conversation) => {
+    setSelectedConversation(conversation)
+    
+    // Cargar mensajes completos de la conversación
+    try {
+      const response = await fetch(`/api/conversations/${conversation.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setSelectedConversation(data.conversation)
+      }
+    } catch (error) {
+      console.error('Error fetching conversation details:', error)
+    }
+  }
+
+  const handleSendMessage = async (message: string, messageType: string = 'text', mediaUrl?: string) => {
+    if (!selectedConversation) return
+
+    try {
+      const response = await fetch(`/api/conversations/${selectedConversation.id}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          messageType,
+          mediaUrl
+        })
+      })
+
+      if (response.ok) {
+        // Actualizar la conversación local
+        const updatedConversation = {
+          ...selectedConversation,
+          messages: [
+            ...selectedConversation.messages,
+            {
+              id: Date.now().toString(),
+              direction: 'outbound' as const,
+              content: message,
+              messageType,
+              sentAt: new Date(),
+              readAt: undefined
+            }
+          ]
+        }
+        setSelectedConversation(updatedConversation)
+        
+        // Actualizar la lista de conversaciones
+        setConversations(prev => 
+          prev.map(conv => 
+            conv.id === selectedConversation.id 
+              ? { ...conv, lastMessageAt: new Date().toISOString() }
+              : conv
+          )
+        )
+      }
+    } catch (error) {
+      console.error('Error sending message:', error)
+    }
+  }
+
+  const handleAssignUser = async (userId: string) => {
+    if (!selectedConversation) return
+
+    try {
+      const response = await fetch(`/api/conversations/${selectedConversation.id}/assign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId })
+      })
+
+      if (response.ok) {
+        // Actualizar la conversación local
+        const updatedConversation = {
+          ...selectedConversation,
+          status: 'assigned',
+          assignedTo: userId
+        }
+        setSelectedConversation(updatedConversation)
+      }
+    } catch (error) {
+      console.error('Error assigning user:', error)
+    }
+  }
+
+  const handleCloseConversation = async () => {
+    if (!selectedConversation) return
+
+    try {
+      const response = await fetch(`/api/conversations/${selectedConversation.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'closed' })
+      })
+
+      if (response.ok) {
+        // Remover de la lista de conversaciones activas
+        setConversations(prev => prev.filter(conv => conv.id !== selectedConversation.id))
+        setSelectedConversation(undefined)
+      }
+    } catch (error) {
+      console.error('Error closing conversation:', error)
+    }
+  }
+
+  const handleAddNote = (note: string) => {
+    console.log('Adding note:', note)
+    // Implementar lógica para agregar notas
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header
+          title="Chats"
+          subtitle="Gestiona las conversaciones de WhatsApp e Instagram"
+          showDateFilter={false}
+          showExportButton={false}
+          showNewButton={false}
+        />
+        <div className="flex h-[calc(100vh-80px)]">
+          <div className="w-1/3 bg-white border-r border-gray-200 animate-pulse">
+            <div className="p-4 space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-16 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+          <div className="flex-1 bg-white animate-pulse">
+            <div className="p-8">
+              <div className="h-64 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <Header
+        title="Chats"
+        subtitle="Gestiona las conversaciones de WhatsApp e Instagram"
+        showDateFilter={false}
+        showExportButton={false}
+        showNewButton={false}
+      />
+
+      {/* Layout de 3 columnas */}
+      <div className="flex h-[calc(100vh-80px)]">
+        {/* Columna 1: Lista de conversaciones */}
+        <div className="w-1/3">
+          <ChatList
+            conversations={conversations}
+            selectedConversationId={selectedConversation?.id}
+            onSelectConversation={handleSelectConversation}
+          />
+        </div>
+
+        {/* Columna 2: Ventana de chat */}
+        <div className="flex-1">
+          <ChatWindow
+            conversation={selectedConversation}
+            onSendMessage={handleSendMessage}
+          />
+        </div>
+
+        {/* Columna 3: Panel lateral */}
+        <div className="w-80">
+          <ChatSidebar
+            conversation={selectedConversation}
+            onAssignUser={handleAssignUser}
+            onCloseConversation={handleCloseConversation}
+            onAddNote={handleAddNote}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Datos mock para desarrollo
+function getMockConversations(): Conversation[] {
+  return [
+    {
+      id: '1',
+      platform: 'whatsapp',
+      status: 'open',
+      lastMessageAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+      lead: {
+        id: 'lead1',
+        nombre: 'Diana',
+        telefono: '+54123456789',
+        email: 'diana@email.com'
+      },
+      messages: [
+        {
+          id: 'msg1',
+          direction: 'inbound',
+          content: 'Hola, me interesa saber sobre los créditos para motos',
+          messageType: 'text',
+          sentAt: new Date(Date.now() - 1000 * 60 * 30)
+        }
+      ]
+    },
+    {
+      id: '2',
+      platform: 'whatsapp',
+      status: 'assigned',
+      assignedTo: 'user1',
+      lastMessageAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+      lead: {
+        id: 'lead2',
+        nombre: 'Margarita Fernández',
+        telefono: '+54123456790'
+      },
+      assignedUser: {
+        id: 'user1',
+        nombre: 'Agustina Rivas',
+        email: 'agustina@fmc.com'
+      },
+      messages: [
+        {
+          id: 'msg2',
+          direction: 'inbound',
+          content: 'Muchas gracias! He recibido la información',
+          messageType: 'text',
+          sentAt: new Date(Date.now() - 1000 * 60 * 60)
+        }
+      ]
+    },
+    {
+      id: '3',
+      platform: 'instagram',
+      status: 'open',
+      lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+      lead: {
+        id: 'lead3',
+        nombre: 'Roberto',
+        telefono: '+54123456791'
+      },
+      messages: [
+        {
+          id: 'msg3',
+          direction: 'inbound',
+          content: 'He elevado tu consulta al departamento correspondiente',
+          messageType: 'text',
+          sentAt: new Date(Date.now() - 1000 * 60 * 60 * 2)
+        }
+      ]
+    }
+  ]
+}
