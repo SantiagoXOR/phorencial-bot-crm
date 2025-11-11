@@ -130,3 +130,75 @@ export function canAccessRoute(userRole: UserRole, route: string): boolean {
 
   return hasAnyPermission(userRole, requiredPermissions)
 }
+
+/**
+ * Verificar permiso granular consultando la base de datos
+ * Combina permisos del rol con permisos personalizados del usuario
+ */
+export async function checkUserPermission(
+  userId: string,
+  resource: string,
+  action: string
+): Promise<boolean> {
+  try {
+    // Importación dinámica para evitar problemas de dependencias circulares
+    const { supabase } = await import('@/lib/db')
+    
+    // Obtener rol del usuario
+    const user = await supabase.findUserById(userId)
+    if (!user) return false
+
+    // Verificar permiso del rol
+    const rolePermission = `${resource}:${action}` as Permission
+    const hasRolePermission = hasPermission(user.role as UserRole, rolePermission)
+
+    // Si el rol ya tiene el permiso, retornar true
+    if (hasRolePermission) return true
+
+    // Verificar permiso granular en la base de datos
+    const { data: customPermissions, error } = await supabase.client
+      .from('user_permissions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('resource', resource)
+      .eq('action', action)
+      .eq('granted', true)
+      .single()
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error checking user permission:', error)
+      return false
+    }
+
+    return !!customPermissions
+  } catch (error) {
+    console.error('Error in checkUserPermission:', error)
+    return false
+  }
+}
+
+/**
+ * Middleware helper para validar permisos en APIs
+ * Lanza error si el usuario no tiene permiso
+ */
+export async function requirePermission(
+  userId: string,
+  userRole: UserRole,
+  resource: string,
+  action: string
+): Promise<void> {
+  const hasPermission = await checkUserPermission(userId, resource, action)
+  
+  if (!hasPermission) {
+    throw new Error(`Forbidden: You don't have permission to ${action} ${resource}`)
+  }
+}
+
+/**
+ * Helper para crear middleware de permisos
+ */
+export function withPermission(resource: string, action: string) {
+  return async (userId: string, userRole: UserRole) => {
+    await requirePermission(userId, userRole, resource, action)
+  }
+}

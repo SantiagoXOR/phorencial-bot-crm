@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,9 +18,13 @@ import {
   Image,
   FileSpreadsheet,
   Calendar,
-  User
+  User,
+  X,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { DocumentCategory } from "@/lib/supabase-storage"
 
 interface Document {
   id: string
@@ -59,59 +63,164 @@ export default function DocumentsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState<string>("")
   const [statusFilter, setStatusFilter] = useState<string>("")
+  
+  // Estados para drag & drop
+  const [isDragging, setIsDragging] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [showUploadDialog, setShowUploadDialog] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedLead, setSelectedLead] = useState<string>('')
+  const [selectedCategory, setSelectedCategory] = useState<DocumentCategory>('otros')
+  const [fileDescription, setFileDescription] = useState('')
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchDocuments()
-  }, [])
+  }, [categoryFilter])
 
   const fetchDocuments = async () => {
     try {
       setLoading(true)
-      // Simular datos para demostración
-      const mockDocuments: Document[] = [
-        {
-          id: "doc_001",
-          leadId: "lead_001",
-          leadName: "Karen Vanina Paliza",
-          fileName: "dni_karen_paliza.pdf",
-          fileType: "application/pdf",
-          fileSize: 2048576,
-          category: "DNI",
-          uploadedAt: "2024-01-15T10:30:00Z",
-          uploadedBy: "admin@phorencial.com",
-          status: "APROBADO"
-        },
-        {
-          id: "doc_002",
-          leadId: "lead_002",
-          leadName: "Jorge Lino Bazan",
-          fileName: "recibo_sueldo_jorge.jpg",
-          fileType: "image/jpeg",
-          fileSize: 1536000,
-          category: "RECIBO_SUELDO",
-          uploadedAt: "2024-01-14T09:15:00Z",
-          uploadedBy: "admin@phorencial.com",
-          status: "PENDIENTE"
-        },
-        {
-          id: "doc_003",
-          leadId: "lead_003",
-          leadName: "Barrios Norma Beatriz",
-          fileName: "comprobante_ingresos.xlsx",
-          fileType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          fileSize: 512000,
-          category: "COMPROBANTE_INGRESOS",
-          uploadedAt: "2024-01-16T16:45:00Z",
-          uploadedBy: "admin@phorencial.com",
-          status: "RECHAZADO"
-        }
-      ]
       
-      setDocuments(mockDocuments)
+      const params = new URLSearchParams()
+      if (categoryFilter) params.append('category', categoryFilter)
+      
+      const response = await fetch(`/api/documents?${params.toString()}`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        setDocuments(data.documents || [])
+      } else {
+        console.error('Error fetching documents')
+        setDocuments([])
+      }
     } catch (error) {
       console.error("Error fetching documents:", error)
+      setDocuments([])
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Handlers para drag & drop
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length > 0) {
+      handleFileSelected(files[0])
+    }
+  }
+
+  const handleFileSelected = (file: File) => {
+    setSelectedFile(file)
+    setShowUploadDialog(true)
+    setUploadError(null)
+  }
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      handleFileSelected(files[0])
+    }
+  }
+
+  const handleUpload = async () => {
+    if (!selectedFile || !selectedLead) {
+      setUploadError('Selecciona un lead y un archivo')
+      return
+    }
+
+    try {
+      setUploading(true)
+      setUploadProgress(0)
+
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+      formData.append('leadId', selectedLead)
+      formData.append('category', selectedCategory)
+      if (fileDescription) formData.append('description', fileDescription)
+
+      // Simular progreso
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90))
+      }, 200)
+
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      clearInterval(progressInterval)
+      setUploadProgress(100)
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('File uploaded successfully:', data)
+        
+        // Actualizar lista de documentos
+        await fetchDocuments()
+        
+        // Resetear formulario
+        setShowUploadDialog(false)
+        setSelectedFile(null)
+        setSelectedLead('')
+        setSelectedCategory('otros')
+        setFileDescription('')
+        setUploadError(null)
+      } else {
+        const error = await response.json()
+        setUploadError(error.message || 'Error al subir el archivo')
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error)
+      setUploadError('Error al subir el archivo')
+    } finally {
+      setUploading(false)
+      setUploadProgress(0)
+    }
+  }
+
+  const handleDeleteDocument = async (documentId: string) => {
+    if (!confirm('¿Está seguro de que desea eliminar este documento?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/documents/${documentId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        // Actualizar lista
+        await fetchDocuments()
+      } else {
+        console.error('Error deleting document')
+      }
+    } catch (error) {
+      console.error('Error deleting document:', error)
     }
   }
 
@@ -192,10 +301,46 @@ export default function DocumentsPage() {
               Gestión de documentos de leads de Formosa
             </p>
           </div>
-          <Button className="gradient-primary text-white hover-lift" data-testid="upload-button">
+          <Button 
+            className="gradient-primary text-white hover-lift" 
+            data-testid="upload-button"
+            onClick={() => fileInputRef.current?.click()}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Subir Documento
           </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleFileInputChange}
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+          />
+        </div>
+
+        {/* Zona de Drag & Drop */}
+        <div
+          className={cn(
+            "border-2 border-dashed rounded-lg p-12 text-center transition-all",
+            isDragging 
+              ? "border-purple-500 bg-purple-50" 
+              : "border-gray-300 bg-white hover:border-purple-400"
+          )}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          <Upload className={cn(
+            "h-12 w-12 mx-auto mb-4",
+            isDragging ? "text-purple-500" : "text-gray-400"
+          )} />
+          <p className="text-lg font-medium mb-2">
+            {isDragging ? "Suelta el archivo aquí" : "Arrastra un archivo o haz click para seleccionar"}
+          </p>
+          <p className="text-sm text-gray-500">
+            PDF, JPG, PNG, DOC, XLS hasta 10MB
+          </p>
         </div>
 
         {/* Estadísticas rápidas */}
@@ -328,13 +473,28 @@ export default function DocumentsPage() {
                       {doc.status}
                     </Badge>
                     <div className="flex items-center space-x-1">
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        title="Ver documento"
+                        onClick={() => doc.url && window.open(doc.url, '_blank')}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        title="Descargar"
+                        onClick={() => doc.url && window.open(doc.url, '_blank')}
+                      >
                         <Download className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        title="Eliminar"
+                        onClick={() => handleDeleteDocument(doc.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -381,7 +541,10 @@ export default function DocumentsPage() {
               <p className="text-gray-500 mb-4">
                 No hay documentos que coincidan con los filtros aplicados
               </p>
-              <Button className="gradient-primary text-white">
+              <Button 
+                className="gradient-primary text-white"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Subir primer documento
               </Button>
@@ -389,6 +552,140 @@ export default function DocumentsPage() {
           </Card>
         )}
       </div>
+
+      {/* Dialog de Upload */}
+      {showUploadDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Subir Documento</CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowUploadDialog(false)}
+                  disabled={uploading}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <CardDescription>
+                Selecciona el lead y categoría del documento
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Archivo seleccionado */}
+              {selectedFile && (
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <File className="h-8 w-8 text-purple-600" />
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{selectedFile.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {(selectedFile.size / 1024).toFixed(2)} KB
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Selector de Lead */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Lead</label>
+                <Input
+                  type="text"
+                  placeholder="ID del lead"
+                  value={selectedLead}
+                  onChange={(e) => setSelectedLead(e.target.value)}
+                  disabled={uploading}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Por ahora ingresa el ID del lead manualmente
+                </p>
+              </div>
+
+              {/* Selector de Categoría */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Categoría</label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value as DocumentCategory)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  disabled={uploading}
+                >
+                  <option value="dni">DNI</option>
+                  <option value="comprobantes">Comprobantes</option>
+                  <option value="contratos">Contratos</option>
+                  <option value="recibos">Recibos</option>
+                  <option value="otros">Otros</option>
+                </select>
+              </div>
+
+              {/* Descripción */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Descripción (opcional)</label>
+                <Input
+                  type="text"
+                  placeholder="Descripción del documento"
+                  value={fileDescription}
+                  onChange={(e) => setFileDescription(e.target.value)}
+                  disabled={uploading}
+                />
+              </div>
+
+              {/* Barra de progreso */}
+              {uploading && (
+                <div className="space-y-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-sm text-center text-gray-600">
+                    Subiendo... {uploadProgress}%
+                  </p>
+                </div>
+              )}
+
+              {/* Error */}
+              {uploadError && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <p className="text-sm text-red-600">{uploadError}</p>
+                </div>
+              )}
+
+              {/* Botones */}
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => setShowUploadDialog(false)}
+                  disabled={uploading}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  onClick={handleUpload}
+                  disabled={uploading || !selectedFile || !selectedLead}
+                >
+                  {uploading ? (
+                    <>
+                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Subiendo...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Subir
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { LeadService } from '@/server/services/lead-service'
 import { LeadUpdateSchema } from '@/lib/validators'
-import { checkPermission } from '@/lib/rbac'
+import { checkPermission, checkUserPermission } from '@/lib/rbac'
 import { logger } from '@/lib/logger'
 
 const leadService = new LeadService()
@@ -19,7 +19,15 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    checkPermission(session.user.role, 'leads:read')
+    // Verificar permiso granular de lectura
+    const hasReadPermission = await checkUserPermission(session.user.id, 'leads', 'read')
+    
+    if (!hasReadPermission) {
+      return NextResponse.json({ 
+        error: 'Forbidden',
+        message: 'No tiene permisos para ver este lead'
+      }, { status: 403 })
+    }
 
     const lead = await leadService.getLeadById(params.id)
 
@@ -51,7 +59,20 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    checkPermission(session.user.role, 'leads:write')
+    // Verificar permiso granular de actualización
+    const hasUpdatePermission = await checkUserPermission(session.user.id, 'leads', 'update')
+    
+    if (!hasUpdatePermission) {
+      logger.warn('Permission denied for lead update', {
+        userId: session.user.id,
+        leadId: params.id
+      })
+      
+      return NextResponse.json({ 
+        error: 'Forbidden',
+        message: 'No tiene permisos para editar leads'
+      }, { status: 403 })
+    }
 
     const body = await request.json()
     const validatedData = LeadUpdateSchema.parse(body)
@@ -90,7 +111,20 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    checkPermission(session.user.role, 'leads:delete')
+    // Verificar permiso granular de eliminación
+    const hasDeletePermission = await checkUserPermission(session.user.id, 'leads', 'delete')
+    
+    if (!hasDeletePermission) {
+      logger.warn('Permission denied for lead deletion', {
+        userId: session.user.id,
+        leadId: params.id
+      })
+      
+      return NextResponse.json({ 
+        error: 'Forbidden',
+        message: 'No tiene permisos para eliminar leads'
+      }, { status: 403 })
+    }
 
     // Verificar que el lead existe antes de eliminarlo
     const existingLead = await leadService.getLeadById(params.id)
@@ -100,7 +134,7 @@ export async function DELETE(
 
     await leadService.deleteLead(params.id, session.user?.id || '')
 
-    logger.info('Lead deleted successfully', { leadId: params.id }, { userId: session.user?.id })
+    logger.info('Lead deleted successfully', { leadId: params.id, userId: session.user?.id })
 
     return NextResponse.json({ success: true, message: 'Lead eliminado exitosamente' })
 

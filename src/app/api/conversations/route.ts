@@ -6,17 +6,28 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
     const status = searchParams.get('status')
+    const platform = searchParams.get('platform') // whatsapp, instagram
+    const search = searchParams.get('search') // búsqueda en contenido
+    const assignedTo = searchParams.get('assignedTo')
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '50')
 
-    let conversations
+    const conversations = await ConversationService.getConversations({
+      userId,
+      status,
+      platform,
+      search,
+      assignedTo,
+      page,
+      limit
+    })
 
-    if (status === 'active') {
-      conversations = await ConversationService.getActiveConversations(userId || undefined)
-    } else {
-      // Obtener todas las conversaciones con filtros opcionales
-      conversations = await ConversationService.getActiveConversations(userId || undefined)
-    }
-
-    return NextResponse.json({ conversations })
+    return NextResponse.json({ 
+      conversations: conversations.data,
+      total: conversations.total,
+      page,
+      limit
+    })
   } catch (error) {
     console.error('Error fetching conversations:', error)
     return NextResponse.json(

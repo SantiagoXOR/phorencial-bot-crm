@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { checkPermission } from '@/lib/rbac'
+import { checkPermission, checkUserPermission } from '@/lib/rbac'
 import { logger } from '@/lib/logger'
 import { z } from 'zod'
 import { automationService } from '@/services/automation-service'
@@ -32,13 +32,18 @@ export async function POST(
       }, { status: 401 })
     }
 
-    // Verificar permisos
-    try {
-      checkPermission(session.user.role, 'leads:write')
-    } catch (error) {
+    // Verificar permisos granulares
+    const hasUpdatePermission = await checkUserPermission(session.user.id, 'pipeline', 'update')
+    
+    if (!hasUpdatePermission) {
+      logger.warn('Permission denied for pipeline move', {
+        userId: session.user.id,
+        leadId: params.leadId
+      })
+      
       return NextResponse.json({ 
         error: 'Forbidden',
-        message: 'No tiene permisos para mover leads'
+        message: 'No tiene permisos para mover leads en el pipeline'
       }, { status: 403 })
     }
 

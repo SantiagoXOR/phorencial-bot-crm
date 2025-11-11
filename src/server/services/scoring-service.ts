@@ -1,188 +1,276 @@
-import { RuleRepository } from '../repositories/rule-repository'
-import { LeadRepository } from '../repositories/lead-repository'
-import { EventRepository } from '../repositories/event-repository'
-import { logger } from '@/lib/logger'
+/**
+ * Scoring Service
+ * Servicio para evaluar automáticamente leads según reglas configuradas
+ */
 
-export interface ScoringResult {
-  score: number
-  decision: 'PREAPROBADO' | 'EN_REVISION' | 'RECHAZADO'
-  motivos: string[]
+import { supabase } from '@/lib/db'
+
+interface ScoringRule {
+  id: string
+  name: string
+  field: string
+  operator: string
+  value: any
+  score_points: number
+  is_active: boolean
+  priority: number
+}
+
+interface LeadData {
+  id: string
+  edad?: number
+  ingresos?: number
+  zona?: string
+  estado?: string
+  origen?: string
+  producto?: string
+  email?: string
+  telefono?: string
+  dni?: string
+}
+
+interface ScoringResult {
+  total_score: number
+  rules_applied: string[]
+  score_breakdown: Record<string, {
+    rule_name: string
+    points: number
+    matched: boolean
+    reason?: string
+  }>
+  recommendation: 'PREAPROBADO' | 'EN_REVISION' | 'RECHAZADO'
 }
 
 export class ScoringService {
-  private ruleRepo = new RuleRepository()
-  private leadRepo = new LeadRepository()
-  private eventRepo = new EventRepository()
-
-  async evaluateLead(leadId: string, userId?: string): Promise<ScoringResult> {
+  /**
+   * Evaluar un lead según las reglas de scoring
+   */
+  static async evaluateLead(leadId: string, leadData?: LeadData): Promise<ScoringResult> {
     try {
-      logger.info('Starting lead evaluation', { leadId, userId })
-
-      // Verificar que el lead existe
-      const lead = await this.leadRepo.findById(leadId)
-      if (!lead) {
-        logger.error('Lead not found', { leadId })
-        throw new Error('Lead not found')
+      // Si no se proporciona leadData, obtenerlo de la base de datos
+      if (!leadData) {
+        leadData = await supabase.findLeadById(leadId)
+        if (!leadData) {
+          throw new Error(`Lead not found: ${leadId}`)
+        }
       }
 
-      logger.info('Lead found', { leadId, leadData: lead })
+      // Obtener reglas activas
+      const { data: rules, error } = await supabase.client
+        .from('scoring_rules')
+        .select('*')
+        .eq('is_active', true)
+        .order('priority', { ascending: true })
 
-      // Obtener reglas de scoring
-      let rules
-      try {
-        rules = await this.ruleRepo.findAll()
-        logger.info('Rules fetched', { rulesCount: rules.length })
-      } catch (error) {
-        logger.error('Error fetching rules', { error })
-        throw new Error('Error fetching scoring rules')
-      }
+      if (error) throw error
 
       if (!rules || rules.length === 0) {
-        logger.error('No scoring rules found')
-        throw new Error('No scoring rules configured')
-      }
-
-      const ruleMap = new Map<string, any>(rules.map((r: any) => [r.key, r.value]))
-      logger.info('Rule map created', { ruleKeys: Array.from(ruleMap.keys()) })
-
-      const result = await this.calculateScore(lead, ruleMap)
-      logger.info('Score calculated', { result })
-
-      // Actualizar estado del lead
-      try {
-        if (result.decision === 'PREAPROBADO') {
-          await this.leadRepo.update(leadId, { estado: 'PREAPROBADO' })
-        } else if (result.decision === 'RECHAZADO') {
-          await this.leadRepo.update(leadId, { estado: 'RECHAZADO' })
-        } else {
-          await this.leadRepo.update(leadId, { estado: 'EN_REVISION' })
+        console.warn('[Scoring] No active scoring rules found')
+        return {
+          total_score: 0,
+          rules_applied: [],
+          score_breakdown: {},
+          recommendation: 'EN_REVISION'
         }
-        logger.info('Lead status updated', { leadId, newStatus: result.decision })
-      } catch (error) {
-        logger.error('Error updating lead status', { error, leadId })
-        // No lanzar error aquí, el scoring ya se calculó
       }
 
-      // Registrar evento
-      try {
-        await this.eventRepo.create({
-          leadId,
-          tipo: 'scoring_evaluated',
-          payload: { userId, result },
-        })
-        logger.info('Scoring event created', { leadId })
-      } catch (error) {
-        logger.error('Error creating scoring event', { error, leadId })
-        // No lanzar error aquí, el scoring ya se calculó
+      // Evaluar cada regla
+      let totalScore = 0
+      const rulesApplied: string[] = []
+      const scoreBreakdown: ScoringResult['score_breakdown'] = {}
+
+      for (const rule of rules) {
+        const result = this.evaluateRule(rule, leadData)
+        
+        scoreBreakdown[rule.id] = {
+          rule_name: rule.name,
+          points: result.matched ? rule.score_points : 0,
+          matched: result.matched,
+          reason: result.reason
+        }
+
+        if (result.matched) {
+          totalScore += rule.score_points
+          rulesApplied.push(rule.id)
+        }
       }
 
-      logger.info('Lead scoring evaluation completed', { leadId, result })
-      return result
+      // Determinar recomendación
+      const recommendation = this.getRecommendation(totalScore)
 
-    } catch (error: any) {
-      logger.error('Error evaluating lead scoring', {
-        error: error.message,
-        stack: error.stack,
-        leadId
+      // Guardar resultado en la base de datos
+      await this.saveScore(leadId, totalScore, rulesApplied, scoreBreakdown)
+
+      console.log('[Scoring] Lead evaluated:', {
+        leadId,
+        totalScore,
+        rulesApplied: rulesApplied.length,
+        recommendation
       })
+
+      return {
+        total_score: totalScore,
+        rules_applied: rulesApplied,
+        score_breakdown: scoreBreakdown,
+        recommendation
+      }
+    } catch (error) {
+      console.error('[Scoring] Error evaluating lead:', error)
       throw error
     }
   }
 
-  private async calculateScore(lead: any, rules: Map<string, any>): Promise<ScoringResult> {
-    let score = 0
-    const motivos: string[] = []
+  /**
+   * Evaluar una regla individual contra los datos de un lead
+   */
+  private static evaluateRule(rule: ScoringRule, leadData: LeadData): { matched: boolean; reason?: string } {
+    try {
+      const fieldValue = leadData[rule.field as keyof LeadData]
+      let ruleValue = rule.value
 
-    // Validar edad (si tenemos DNI)
-    if (lead.dni && lead.dni.length >= 8) {
-      const edad = this.calculateAge(lead.dni)
-      const edadMin = rules.get('edadMin') || 18
-      const edadMax = rules.get('edadMax') || 75
-
-      if (edad < edadMin) {
-        motivos.push(`Edad menor a ${edadMin} años`)
-        score -= 50
-      } else if (edad > edadMax) {
-        motivos.push(`Edad mayor a ${edadMax} años`)
-        score -= 50
-      } else {
-        score += 20
-        motivos.push('Edad dentro del rango permitido')
+      // Parsear value si es JSON string
+      if (typeof ruleValue === 'string') {
+        try {
+          ruleValue = JSON.parse(ruleValue)
+        } catch {
+          // Es un string simple, mantener como está
+        }
       }
-    }
 
-    // Validar ingresos
-    const minIngreso = rules.get('minIngreso') || 200000
-    if (lead.ingresos) {
-      if (lead.ingresos < minIngreso) {
-        motivos.push(`Ingresos menores a $${minIngreso.toLocaleString()}`)
-        score -= 30
-      } else {
-        score += 25
-        motivos.push('Ingresos suficientes')
+      // Evaluar según operador
+      switch (rule.operator) {
+        case 'equals':
+          return {
+            matched: fieldValue === ruleValue,
+            reason: fieldValue === ruleValue ? undefined : `${fieldValue} ≠ ${ruleValue}`
+          }
+
+        case 'contains':
+          return {
+            matched: String(fieldValue || '').toLowerCase().includes(String(ruleValue).toLowerCase()),
+            reason: undefined
+          }
+
+        case 'greater_than':
+          const numValue = Number(fieldValue)
+          const numRule = Number(ruleValue)
+          return {
+            matched: !isNaN(numValue) && numValue > numRule,
+            reason: `${numValue} ${!isNaN(numValue) && numValue > numRule ? '>' : '≤'} ${numRule}`
+          }
+
+        case 'less_than':
+          const numValue2 = Number(fieldValue)
+          const numRule2 = Number(ruleValue)
+          return {
+            matched: !isNaN(numValue2) && numValue2 < numRule2,
+            reason: `${numValue2} ${!isNaN(numValue2) && numValue2 < numRule2 ? '<' : '≥'} ${numRule2}`
+          }
+
+        case 'between':
+          const num = Number(fieldValue)
+          const min = Number(ruleValue.min)
+          const max = Number(ruleValue.max)
+          const inRange = !isNaN(num) && num >= min && num <= max
+          return {
+            matched: inRange,
+            reason: `${num} ${inRange ? '∈' : '∉'} [${min}, ${max}]`
+          }
+
+        case 'in_list':
+          const list = Array.isArray(ruleValue) ? ruleValue : []
+          return {
+            matched: list.includes(fieldValue),
+            reason: undefined
+          }
+
+        default:
+          console.warn('[Scoring] Unknown operator:', rule.operator)
+          return { matched: false, reason: 'Operador desconocido' }
       }
-    } else {
-      motivos.push('Ingresos no declarados')
-      score -= 10
+    } catch (error) {
+      console.error('[Scoring] Error evaluating rule:', error)
+      return { matched: false, reason: 'Error en evaluación' }
     }
-
-    // Validar zona
-    const zonasPermitidas = rules.get('zonasPermitidas') || ['CABA', 'GBA', 'Córdoba']
-    if (lead.zona) {
-      if (zonasPermitidas.includes(lead.zona)) {
-        score += 15
-        motivos.push('Zona permitida')
-      } else {
-        motivos.push('Zona no permitida')
-        score -= 20
-      }
-    } else {
-      motivos.push('Zona no especificada')
-      score -= 5
-    }
-
-    // Validar datos completos
-    const camposCompletos = [lead.nombre, lead.telefono, lead.email, lead.dni].filter(Boolean).length
-    if (camposCompletos >= 3) {
-      score += 10
-      motivos.push('Datos completos')
-    } else {
-      motivos.push('Datos incompletos')
-      score -= 5
-    }
-
-    // Determinar decisión
-    let decision: ScoringResult['decision']
-    if (score >= 50) {
-      decision = 'PREAPROBADO'
-    } else if (score >= 0) {
-      decision = 'EN_REVISION'
-    } else {
-      decision = 'RECHAZADO'
-    }
-
-    return { score, decision, motivos }
   }
 
-  private calculateAge(dni: string): number {
-    // Extraer fecha de nacimiento del DNI (simplificado)
-    // En un caso real, usarías una API de RENAPER
-    if (!dni || dni.length < 8) {
-      return 25 // Edad por defecto si no hay DNI válido
+  /**
+   * Obtener recomendación basada en el puntaje
+   */
+  private static getRecommendation(score: number): 'PREAPROBADO' | 'EN_REVISION' | 'RECHAZADO' {
+    if (score >= 70) return 'PREAPROBADO'
+    if (score >= 40) return 'EN_REVISION'
+    return 'RECHAZADO'
+  }
+
+  /**
+   * Guardar puntaje de un lead
+   */
+  private static async saveScore(
+    leadId: string,
+    totalScore: number,
+    rulesApplied: string[],
+    scoreBreakdown: ScoringResult['score_breakdown']
+  ): Promise<void> {
+    try {
+      const { error } = await supabase.client
+        .from('lead_scores')
+        .insert({
+          lead_id: leadId,
+          total_score: totalScore,
+          rules_applied: JSON.stringify(rulesApplied),
+          score_breakdown: JSON.stringify(scoreBreakdown),
+        })
+
+      if (error) throw error
+    } catch (error) {
+      console.error('[Scoring] Error saving score:', error)
+      // No lanzar error, es secundario
     }
+  }
 
-    const year = parseInt(dni.substring(0, 2))
-    const currentYear = new Date().getFullYear()
+  /**
+   * Obtener último score de un lead
+   */
+  static async getLeadScore(leadId: string): Promise<ScoringResult | null> {
+    try {
+      const { data, error } = await supabase.client
+        .from('lead_scores')
+        .select('*')
+        .eq('lead_id', leadId)
+        .order('calculated_at', { ascending: false })
+        .limit(1)
+        .single()
 
-    // Lógica corregida: si el año es <= 25, es del siglo XXI, sino del XX
-    const birthYear = year <= 25 ? 2000 + year : 1900 + year
-    const age = currentYear - birthYear
+      if (error) {
+        if (error.code === 'PGRST116') return null
+        throw error
+      }
 
-    // Validar que la edad sea razonable (entre 16 y 100 años)
-    if (age < 16 || age > 100) {
-      return 25 // Edad por defecto si el cálculo no es razonable
+      return {
+        total_score: data.total_score,
+        rules_applied: JSON.parse(data.rules_applied || '[]'),
+        score_breakdown: JSON.parse(data.score_breakdown || '{}'),
+        recommendation: this.getRecommendation(data.total_score)
+      }
+    } catch (error) {
+      console.error('[Scoring] Error getting lead score:', error)
+      return null
     }
+  }
 
-    return age
+  /**
+   * Calcular data completeness de un lead
+   */
+  static calculateDataCompleteness(leadData: LeadData): 'complete' | 'partial' | 'incomplete' {
+    const requiredFields = ['email', 'telefono', 'dni']
+    const completedFields = requiredFields.filter(field => {
+      const value = leadData[field as keyof LeadData]
+      return value && value !== ''
+    })
+
+    if (completedFields.length === requiredFields.length) return 'complete'
+    if (completedFields.length > 0) return 'partial'
+    return 'incomplete'
   }
 }

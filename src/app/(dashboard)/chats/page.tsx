@@ -41,32 +41,53 @@ export default function ChatsPage() {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<Conversation | undefined>()
   const [loading, setLoading] = useState(true)
+  
+  // Estados de filtros
+  const [filters, setFilters] = useState({
+    status: 'active' as string,
+    platform: '' as string,
+    search: '' as string,
+  })
 
-  // Cargar conversaciones al montar el componente
+  // Cargar conversaciones al montar el componente y cuando cambien filtros
   useEffect(() => {
     fetchConversations()
-  }, [])
+  }, [filters])
 
   const fetchConversations = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/conversations?status=active')
+      
+      // Construir query params
+      const params = new URLSearchParams()
+      if (filters.status) params.append('status', filters.status)
+      if (filters.platform) params.append('platform', filters.platform)
+      if (filters.search) params.append('search', filters.search)
+      
+      const response = await fetch(`/api/conversations?${params.toString()}`)
       
       if (response.ok) {
         const data = await response.json()
         setConversations(data.conversations || [])
       } else {
         console.error('Error fetching conversations')
-        // Datos mock para desarrollo
-        setConversations(getMockConversations())
+        setConversations([])
       }
     } catch (error) {
       console.error('Error fetching conversations:', error)
-      // Datos mock para desarrollo
-      setConversations(getMockConversations())
+      setConversations([])
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }))
+  }
+
+  const handleSearchChange = (value: string) => {
+    // Debounce la búsqueda
+    setFilters(prev => ({ ...prev, search: value }))
   }
 
   const handleSelectConversation = async (conversation: Conversation) => {
@@ -226,13 +247,66 @@ export default function ChatsPage() {
 
       {/* Layout de 3 columnas */}
       <div className="flex h-[calc(100vh-80px)]">
-        {/* Columna 1: Lista de conversaciones */}
-        <div className="w-1/3">
-          <ChatList
-            conversations={conversations}
-            selectedConversationId={selectedConversation?.id}
-            onSelectConversation={handleSelectConversation}
-          />
+        {/* Columna 1: Lista de conversaciones con filtros */}
+        <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col">
+          {/* Filtros y búsqueda */}
+          <div className="p-4 border-b border-gray-200 space-y-3">
+            {/* Búsqueda */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Buscar en conversaciones..."
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                value={filters.search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+              />
+              <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+
+            {/* Filtros */}
+            <div className="flex gap-2">
+              <select
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                value={filters.status}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+              >
+                <option value="">Todos los estados</option>
+                <option value="active">Activas</option>
+                <option value="open">Abiertas</option>
+                <option value="assigned">Asignadas</option>
+                <option value="closed">Cerradas</option>
+                <option value="resolved">Resueltas</option>
+              </select>
+
+              <select
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                value={filters.platform}
+                onChange={(e) => handleFilterChange('platform', e.target.value)}
+              >
+                <option value="">Todas las plataformas</option>
+                <option value="whatsapp">WhatsApp</option>
+                <option value="instagram">Instagram</option>
+                <option value="facebook">Facebook</option>
+                <option value="web">Web</option>
+              </select>
+            </div>
+
+            {/* Contador de resultados */}
+            <div className="text-sm text-gray-500">
+              {conversations.length} conversación{conversations.length !== 1 ? 'es' : ''}
+            </div>
+          </div>
+
+          {/* Lista de conversaciones */}
+          <div className="flex-1 overflow-y-auto">
+            <ChatList
+              conversations={conversations}
+              selectedConversationId={selectedConversation?.id}
+              onSelectConversation={handleSelectConversation}
+            />
+          </div>
         </div>
 
         {/* Columna 2: Ventana de chat */}

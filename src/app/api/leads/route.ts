@@ -3,9 +3,10 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { supabaseLeadService } from '@/server/services/supabase-lead-service'
 import { LeadCreateSchema, LeadQuerySchema } from '@/lib/validators'
-import { checkPermission, hasPermission } from '@/lib/rbac'
+import { checkPermission, hasPermission, checkUserPermission } from '@/lib/rbac'
 import { logger } from '@/lib/logger'
 import { pipelineService } from '@/server/services/pipeline-service'
+import { ScoringService } from '@/server/services/scoring-service'
 import { withMonitoring, captureDbError, setSentryUser, captureBusinessMetric } from '@/lib/monitoring-temp'
 import { withValidation, createValidationErrorResponse } from '@/lib/validation-middleware'
 
@@ -181,10 +182,15 @@ async function postHandler(
       }, { status: 401 })
     }
 
-    // Verificar permisos
-    try {
-      checkPermission(session.user.role, 'leads:write')
-    } catch (error) {
+    // Verificar permisos granulares
+    const hasCreatePermission = await checkUserPermission(session.user.id, 'leads', 'create')
+    
+    if (!hasCreatePermission) {
+      logger.warn('Permission denied for lead creation', {
+        userId: session.user.id,
+        userRole: session.user.role
+      })
+      
       return NextResponse.json({
         error: 'Forbidden',
         message: 'No tiene permisos para crear leads'
@@ -218,6 +224,34 @@ async function postHandler(
       logger.error('Error creating pipeline for new lead', {
         leadId: lead.id,
         error: pipelineError
+      })
+    }
+
+    // Evaluar scoring automáticamente
+    try {
+      const scoringResult = await ScoringService.evaluateLead(lead.id, lead)
+      logger.info('Scoring evaluated automatically for new lead', { 
+        leadId: lead.id,
+        score: scoringResult.total_score,
+        recommendation: scoringResult.recommendation
+      })
+
+      // Si la recomendación es diferente al estado actual, actualizar
+      if (scoringResult.recommendation !== lead.estado) {
+        logger.info('Updating lead estado based on scoring', {
+          leadId: lead.id,
+          from: lead.estado,
+          to: scoringResult.recommendation
+        })
+        
+        // Actualizar estado del lead basado en scoring
+        await supabaseLeadService.updateLeadEstado(lead.id, scoringResult.recommendation)
+      }
+    } catch (scoringError) {
+      // Log error pero no fallar la creación del lead
+      logger.error('Error evaluating scoring for new lead', {
+        leadId: lead.id,
+        error: scoringError
       })
     }
 
@@ -280,11 +314,11 @@ async function getHandler(
       }, { status: 401 })
     }
 
-    // Solo verificar permisos si hay sesión
+    // Verificar permisos granulares si hay sesión
     if (session) {
-      try {
-        checkPermission(session.user.role, 'leads:read')
-      } catch (error) {
+      const hasReadPermission = await checkUserPermission(session.user.id, 'leads', 'read')
+      
+      if (!hasReadPermission) {
         return NextResponse.json({
           error: 'Forbidden',
           message: 'No tiene permisos para ver los leads'

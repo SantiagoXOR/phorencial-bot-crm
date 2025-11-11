@@ -6,8 +6,6 @@ import { ScoringRequestSchema } from '@/lib/validators'
 import { checkPermission } from '@/lib/rbac'
 import { logger } from '@/lib/logger'
 
-const scoringService = new ScoringService()
-
 export async function POST(request: NextRequest) {
   try {
     logger.info('POST /api/scoring/eval - Starting request')
@@ -29,7 +27,8 @@ export async function POST(request: NextRequest) {
     const { leadId } = ScoringRequestSchema.parse(body)
     logger.info('Lead ID validated', { leadId })
 
-    const result = await scoringService.evaluateLead(leadId, session.user.id)
+    // Usar el servicio estático actualizado
+    const result = await ScoringService.evaluateLead(leadId)
     logger.info('Scoring evaluation completed', { leadId, result })
 
     return NextResponse.json(result)

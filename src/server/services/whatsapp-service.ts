@@ -287,7 +287,7 @@ export class WhatsAppService {
   }
 
   /**
-   * Crear mensaje en la base de datos (Event log)
+   * Crear mensaje en la base de datos
    */
   static async createMessage(data: {
     conversationId: string
@@ -298,21 +298,36 @@ export class WhatsAppService {
     platformMsgId?: string
   }) {
     try {
-      // TODO: Si existe tabla de messages en Supabase, usar esa
-      // Por ahora, registrar como evento
-      console.log('[WhatsApp] Message created:', {
+      const { data: message, error } = await supabase.client
+        .from('messages')
+        .insert({
+          conversation_id: data.conversationId,
+          direction: data.direction,
+          content: data.content,
+          message_type: data.messageType,
+          media_url: data.mediaUrl,
+          platform_msg_id: data.platformMsgId,
+          sent_at: new Date().toISOString(),
+          delivered_at: data.direction === 'outbound' ? new Date().toISOString() : null,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('[WhatsApp] Error creating message in database:', error)
+        throw error
+      }
+
+      console.log('[WhatsApp] Message created in database:', {
+        id: message.id,
         direction: data.direction,
         type: data.messageType,
         conversationId: data.conversationId,
       })
 
-      return {
-        id: data.platformMsgId || Date.now().toString(),
-        ...data,
-        sentAt: new Date(),
-      }
+      return message
     } catch (error) {
-      console.error('Error creating message:', error)
+      console.error('[WhatsApp] Error creating message:', error)
       throw error
     }
   }
@@ -322,16 +337,25 @@ export class WhatsAppService {
    */
   static async markAsRead(messageId: string) {
     try {
-      // TODO: Implementar cuando exista tabla de messages
+      // Actualizar en la base de datos
+      const { error } = await supabase.client
+        .from('messages')
+        .update({ read_at: new Date().toISOString() })
+        .eq('platform_msg_id', messageId)
+
+      if (error) {
+        console.warn('[WhatsApp] Could not mark message as read in database:', error)
+      }
+
       console.log('[WhatsApp] Message marked as read:', messageId)
       
-      // Si usamos WhatsApp Business API, marcar en la plataforma
+      // Si usamos WhatsApp Business API, marcar en la plataforma también
       if (this.whatsappClient) {
         await this.whatsappClient.markAsRead(messageId)
       }
     } catch (error) {
-      console.error('Error marking message as read:', error)
-      throw error
+      console.error('[WhatsApp] Error marking message as read:', error)
+      // No lanzar error, es una operación secundaria
     }
   }
 
@@ -340,13 +364,22 @@ export class WhatsAppService {
    */
   static async getConversationHistory(conversationId: string) {
     try {
-      // TODO: Implementar cuando exista tabla de messages o usar eventos
-      console.log('[WhatsApp] Fetching conversation history for:', conversationId)
+      const { data: messages, error } = await supabase.client
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('sent_at', { ascending: true })
+
+      if (error) throw error
+
+      console.log('[WhatsApp] Fetched conversation history:', {
+        conversationId,
+        messageCount: messages?.length || 0,
+      })
       
-      // Por ahora, retornar vacío
-      return []
+      return messages || []
     } catch (error) {
-      console.error('Error fetching conversation history:', error)
+      console.error('[WhatsApp] Error fetching conversation history:', error)
       throw error
     }
   }

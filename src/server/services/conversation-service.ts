@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { supabase } from '@/lib/db'
 
 export interface CreateConversationData {
   platform: string
@@ -44,44 +42,25 @@ export class ConversationService {
    */
   static async createConversation(data: CreateConversationData) {
     try {
-      const conversation = await prisma.conversation.create({
-        data: {
+      const { data: conversation, error } = await supabase.client
+        .from('conversations')
+        .insert({
           platform: data.platform,
-          platformId: data.platformId,
-          leadId: data.leadId,
-        },
-        include: {
-          lead: {
-            select: {
-              id: true,
-              nombre: true,
-              telefono: true,
-              email: true,
-            }
-          },
-          assignedUser: {
-            select: {
-              id: true,
-              nombre: true,
-              email: true,
-            }
-          },
-          messages: {
-            orderBy: { sentAt: 'desc' },
-            take: 10,
-            select: {
-              id: true,
-              direction: true,
-              content: true,
-              messageType: true,
-              sentAt: true,
-              readAt: true,
-            }
-          }
-        }
-      })
+          platform_id: data.platformId,
+          lead_id: data.leadId,
+        })
+        .select(`
+          *,
+          lead:Lead(id, nombre, telefono, email)
+        `)
+        .single()
 
-      return conversation
+      if (error) throw error
+
+      return {
+        ...conversation,
+        messages: []
+      }
     } catch (error) {
       console.error('Error creating conversation:', error)
       throw new Error('Failed to create conversation')
@@ -89,43 +68,38 @@ export class ConversationService {
   }
 
   /**
-   * Obtener conversación por ID
+   * Obtener conversación por ID con mensajes
    */
   static async getConversationById(id: string): Promise<ConversationWithDetails | null> {
     try {
-      const conversation = await prisma.conversation.findUnique({
-        where: { id },
-        include: {
-          lead: {
-            select: {
-              id: true,
-              nombre: true,
-              telefono: true,
-              email: true,
-            }
-          },
-          assignedUser: {
-            select: {
-              id: true,
-              nombre: true,
-              email: true,
-            }
-          },
-          messages: {
-            orderBy: { sentAt: 'asc' },
-            select: {
-              id: true,
-              direction: true,
-              content: true,
-              messageType: true,
-              sentAt: true,
-              readAt: true,
-            }
-          }
-        }
-      })
+      const { data: conversation, error } = await supabase.client
+        .from('conversations')
+        .select(`
+          *,
+          lead:Lead(id, nombre, telefono, email),
+          assigned_user:auth.users!conversations_assigned_to_fkey(id)
+        `)
+        .eq('id', id)
+        .single()
 
-      return conversation
+      if (error) {
+        if (error.code === 'PGRST116') return null // No encontrado
+        throw error
+      }
+
+      // Obtener mensajes de la conversación
+      const { data: messages, error: messagesError } = await supabase.client
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', id)
+        .order('sent_at', { ascending: true })
+
+      if (messagesError) throw messagesError
+
+      return {
+        ...conversation,
+        messages: messages || []
+      }
     } catch (error) {
       console.error('Error fetching conversation:', error)
       throw new Error('Failed to fetch conversation')
@@ -133,52 +107,92 @@ export class ConversationService {
   }
 
   /**
-   * Obtener conversaciones activas
+   * Obtener conversaciones con filtros avanzados
    */
-  static async getActiveConversations(userId?: string) {
+  static async getConversations(filters: {
+    userId?: string | null
+    status?: string | null
+    platform?: string | null
+    search?: string | null
+    assignedTo?: string | null
+    page?: number
+    limit?: number
+  }) {
     try {
-      const where = userId 
-        ? { assignedTo: userId, status: { in: ['open', 'assigned'] } }
-        : { status: { in: ['open', 'assigned'] } }
+      const page = filters.page || 1
+      const limit = filters.limit || 50
+      const offset = (page - 1) * limit
 
-      const conversations = await prisma.conversation.findMany({
-        where,
-        include: {
-          lead: {
-            select: {
-              id: true,
-              nombre: true,
-              telefono: true,
-              email: true,
-            }
-          },
-          assignedUser: {
-            select: {
-              id: true,
-              nombre: true,
-              email: true,
-            }
-          },
-          messages: {
-            orderBy: { sentAt: 'desc' },
-            take: 1,
-            select: {
-              id: true,
-              direction: true,
-              content: true,
-              messageType: true,
-              sentAt: true,
-            }
-          }
-        },
-        orderBy: { lastMessageAt: 'desc' }
-      })
+      let query = supabase.client
+        .from('conversations')
+        .select(`
+          *,
+          lead:Lead(id, nombre, telefono, email, zona, estado)
+        `, { count: 'exact' })
 
-      return conversations
+      // Aplicar filtros
+      if (filters.status) {
+        if (filters.status === 'active') {
+          query = query.in('status', ['open', 'assigned'])
+        } else {
+          query = query.eq('status', filters.status)
+        }
+      }
+
+      if (filters.platform) {
+        query = query.eq('platform', filters.platform)
+      }
+
+      if (filters.assignedTo) {
+        query = query.eq('assigned_to', filters.assignedTo)
+      }
+
+      // Orden y paginación
+      query = query
+        .order('last_message_at', { ascending: false })
+        .range(offset, offset + limit - 1)
+
+      const { data: conversations, error, count } = await query
+
+      if (error) throw error
+
+      // Si hay búsqueda, filtrar por contenido de mensajes
+      let filteredConversations = conversations || []
+      
+      if (filters.search && filteredConversations.length > 0) {
+        const conversationIds = filteredConversations.map(c => c.id)
+        
+        const { data: matchingMessages } = await supabase.client
+          .from('messages')
+          .select('conversation_id')
+          .in('conversation_id', conversationIds)
+          .ilike('content', `%${filters.search}%`)
+
+        const matchingIds = new Set(matchingMessages?.map(m => m.conversation_id) || [])
+        filteredConversations = filteredConversations.filter(c => matchingIds.has(c.id))
+      }
+
+      return {
+        data: filteredConversations,
+        total: count || 0,
+        page,
+        limit
+      }
     } catch (error) {
-      console.error('Error fetching active conversations:', error)
+      console.error('Error fetching conversations:', error)
       throw new Error('Failed to fetch conversations')
     }
+  }
+
+  /**
+   * Obtener conversaciones activas (método legacy)
+   */
+  static async getActiveConversations(userId?: string) {
+    const result = await this.getConversations({
+      userId,
+      status: 'active'
+    })
+    return result.data
   }
 
   /**
@@ -186,31 +200,21 @@ export class ConversationService {
    */
   static async assignConversation(conversationId: string, userId: string) {
     try {
-      const conversation = await prisma.conversation.update({
-        where: { id: conversationId },
-        data: {
-          assignedTo: userId,
+      const { data: conversation, error } = await supabase.client
+        .from('conversations')
+        .update({
+          assigned_to: userId,
           status: 'assigned',
-          updatedAt: new Date()
-        },
-        include: {
-          lead: {
-            select: {
-              id: true,
-              nombre: true,
-              telefono: true,
-              email: true,
-            }
-          },
-          assignedUser: {
-            select: {
-              id: true,
-              nombre: true,
-              email: true,
-            }
-          }
-        }
-      })
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', conversationId)
+        .select(`
+          *,
+          lead:Lead(id, nombre, telefono, email)
+        `)
+        .single()
+
+      if (error) throw error
 
       return conversation
     } catch (error) {
@@ -224,13 +228,17 @@ export class ConversationService {
    */
   static async closeConversation(conversationId: string) {
     try {
-      const conversation = await prisma.conversation.update({
-        where: { id: conversationId },
-        data: {
+      const { data: conversation, error } = await supabase.client
+        .from('conversations')
+        .update({
           status: 'closed',
-          updatedAt: new Date()
-        }
-      })
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', conversationId)
+        .select()
+        .single()
+
+      if (error) throw error
 
       return conversation
     } catch (error) {
@@ -244,29 +252,25 @@ export class ConversationService {
    */
   static async findConversationByPlatform(platform: string, platformId: string) {
     try {
-      const conversation = await prisma.conversation.findUnique({
-        where: {
-          platform_platformId: {
-            platform,
-            platformId
-          }
-        },
-        include: {
-          lead: {
-            select: {
-              id: true,
-              nombre: true,
-              telefono: true,
-              email: true,
-            }
-          }
-        }
-      })
+      const { data: conversation, error } = await supabase.client
+        .from('conversations')
+        .select(`
+          *,
+          lead:Lead(id, nombre, telefono, email)
+        `)
+        .eq('platform', platform)
+        .eq('platform_id', platformId)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') return null
+        throw error
+      }
 
       return conversation
     } catch (error) {
       console.error('Error finding conversation by platform:', error)
-      throw new Error('Failed to find conversation')
+      return null
     }
   }
 
@@ -275,13 +279,15 @@ export class ConversationService {
    */
   static async updateLastActivity(conversationId: string) {
     try {
-      await prisma.conversation.update({
-        where: { id: conversationId },
-        data: {
-          lastMessageAt: new Date(),
-          updatedAt: new Date()
-        }
-      })
+      const { error } = await supabase.client
+        .from('conversations')
+        .update({
+          last_message_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', conversationId)
+
+      if (error) throw error
     } catch (error) {
       console.error('Error updating conversation activity:', error)
       throw new Error('Failed to update conversation activity')
