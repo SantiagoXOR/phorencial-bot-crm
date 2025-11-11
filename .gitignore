@@ -47,3 +47,17 @@ next-env.d.ts
 Thumbs.db
 
 .vercel
+
+# Database exports (temporal backups)
+database-exports/
+
+# Temporary test credentials
+test-current-credentials.js
+
+# Cursor
+.cursor/
+.cursorignore
+
+# PowerShell scripts temporales
+update-*.ps1
+setup-*.ps1

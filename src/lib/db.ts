@@ -11,45 +11,75 @@ class SupabaseClient {
   private serviceKey: string
 
   constructor() {
-    // Usar valores por defecto si las variables de entorno no están disponibles
-    this.baseUrl = SUPABASE_URL || 'https://aozysydpwvkkdvhfsvsu.supabase.co'
-    this.serviceKey = SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvenlzeWRwd3Zra2R2aGZzdnN1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTgxNDk4NCwiZXhwIjoyMDcxMzkwOTg0fQ.S0VZQD26wTUcoTeo9ZSqoO0JbQq1zvP_uT0LZsXmCPw'
+    // Verificar que las variables de entorno estén configuradas
+    if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+      throw new Error('Supabase credentials not configured. Please check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables.')
+    }
+    
+    this.baseUrl = SUPABASE_URL
+    this.serviceKey = SERVICE_ROLE_KEY
   }
 
   async request(endpoint: string, options: RequestInit = {}) {
     const url = `${this.baseUrl}/rest/v1${endpoint}`
 
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': this.serviceKey,
-        'Authorization': `Bearer ${this.serviceKey}`,
-        ...options.headers
-      },
-      ...options
-    })
+    try {
+      console.log(`🌐 Supabase request: ${url}`)
+      
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': this.serviceKey,
+          'Authorization': `Bearer ${this.serviceKey}`,
+          ...options.headers
+        },
+        ...options
+      })
 
-    if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`Supabase error: ${response.status} - ${error}`)
+      if (!response.ok) {
+        const error = await response.text()
+        console.error(`❌ Supabase HTTP error: ${response.status} - ${error}`)
+        throw new Error(`Supabase error: ${response.status} - ${error}`)
+      }
+
+      return response.json()
+    } catch (error: any) {
+      // Capturar errores de red específicos
+      if (error.message === 'fetch failed' || error.name === 'TypeError') {
+        console.error(`❌ Supabase network error: ${error.message}`)
+        console.error(`   URL: ${url}`)
+        console.error(`   Error type: ${error.constructor.name}`)
+        console.error(`   Stack: ${error.stack}`)
+        throw new Error(`Error de conexión a Supabase: ${error.message}. Verifique su conexión a internet y la configuración de red.`)
+      }
+      
+      // Re-lanzar otros errores
+      console.error(`❌ Supabase request error: ${error.message}`)
+      throw error
     }
-
-    return response.json()
   }
 
   // Operaciones para User
   async findUserByEmail(email: string) {
-    const users = await this.request(`/User?email=eq.${email}&select=*`)
+    const users = await this.request(`/User?email=eq.${email}&limit=1`)
     if (!users[0]) return null
 
-    // Mapear campos de Supabase a nuestro esquema
+    return this.mapUserData(users[0])
+  }
+
+  async getUserRole(userId: string) {
+    const user = await this.request(`/User?id=eq.${userId}&select=role`)
+    return user[0]?.role || null
+  }
+
+  private mapUserData(userData: any) {
     return {
-      id: users[0].id,
-      email: users[0].email,
-      nombre: users[0].name,
-      hash: users[0].password,
-      rol: users[0].role,
-      createdAt: users[0].createdAt
+      id: userData.id,
+      email: userData.email,
+      nombre: userData.name,
+      hash: userData.hashedPassword,
+      rol: userData.role,
+      createdAt: userData.createdAt
     }
   }
 
@@ -277,17 +307,28 @@ class SupabaseClient {
 
   // Nuevas funciones para el sistema de usuarios mejorado
   async findUserByEmailNew(email: string) {
-    const users = await this.request(`/users?email=eq.${email}&limit=1`)
-    return users[0] || null
+    const users = await this.request(`/User?email=eq.${email}&limit=1`)
+    if (!users[0]) return null
+
+    return {
+      id: users[0].id,
+      email: users[0].email,
+      nombre: users[0].name,
+      apellido: '', // Campo requerido por auth.ts
+      hash: users[0].hashedPassword,
+      role: users[0].role, // Cambiar de 'rol' a 'role'
+      status: 'ACTIVE', // Campo requerido por auth.ts
+      createdAt: users[0].createdAt
+    }
   }
 
   async updateUserLastLogin(userId: string) {
-    await this.request(`/users?id=eq.${userId}`, {
+    const users = await this.request(`/User?id=eq.${userId}`, {
       method: 'PATCH',
-      body: JSON.stringify({
-        last_login: new Date().toISOString()
-      })
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify({ lastLogin: new Date().toISOString() })
     })
+    return users[0]
   }
 
   async getUserPermissions(userId: string) {
@@ -323,7 +364,7 @@ class SupabaseClient {
   }
 
   async createUser(userData: any) {
-    const users = await this.request('/users', {
+    const users = await this.request('/User', {
       method: 'POST',
       headers: { 'Prefer': 'return=representation' },
       body: JSON.stringify(userData)
@@ -332,7 +373,7 @@ class SupabaseClient {
   }
 
   async updateUser(userId: string, userData: any) {
-    const users = await this.request(`/users?id=eq.${userId}`, {
+    const users = await this.request(`/User?id=eq.${userId}`, {
       method: 'PATCH',
       headers: { 'Prefer': 'return=representation' },
       body: JSON.stringify(userData)
@@ -341,12 +382,13 @@ class SupabaseClient {
   }
 
   async findAllUsers() {
-    return this.request('/users?select=*&order=created_at.desc')
+    return this.request('/User?select=*&order=created_at.desc')
   }
 
   async findUserById(userId: string) {
-    const users = await this.request(`/users?id=eq.${userId}&limit=1`)
-    return users[0] || null
+    const users = await this.request(`/User?id=eq.${userId}&limit=1`)
+    if (!users[0]) return null
+    return this.mapUserData(users[0])
   }
 }
 

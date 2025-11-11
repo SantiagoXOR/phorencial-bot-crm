@@ -33,11 +33,50 @@ export class PipelineService {
 
   // Obtener etapas del pipeline
   async getStages(): Promise<PipelineStage[]> {
-    const response = await fetch(`${this.baseUrl}/pipeline/stages`)
-    if (!response.ok) {
-      throw new Error('Error al obtener etapas del pipeline')
+    try {
+      const response = await fetch(`${this.baseUrl}/pipeline/stages`)
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          // No existen stages, retornar array vacío
+          return []
+        }
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      return data.stages || []
+    } catch (error) {
+      console.error('Error fetching stages:', error)
+      // Retornar array vacío en lugar de lanzar error
+      return []
     }
-    return response.json()
+  }
+
+  // Crear etapas por defecto
+  async createDefaultStages(): Promise<PipelineStage[]> {
+    const defaultStages = [
+      { name: 'Nuevo', order: 0, color: '#3B82F6' },
+      { name: 'Contactado', order: 1, color: '#8B5CF6' },
+      { name: 'Calificado', order: 2, color: '#6366F1' },
+      { name: 'Propuesta', order: 3, color: '#A855F7' },
+      { name: 'Negociación', order: 4, color: '#EC4899' },
+      { name: 'Ganado', order: 5, color: '#10B981' },
+      { name: 'Perdido', order: 6, color: '#EF4444' }
+    ]
+
+    const response = await fetch(`${this.baseUrl}/pipeline/stages/batch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stages: defaultStages })
+    })
+
+    if (!response.ok) {
+      throw new Error('No se pudieron crear las etapas por defecto')
+    }
+
+    const data = await response.json()
+    return data.stages || []
   }
 
   // Obtener leads del pipeline

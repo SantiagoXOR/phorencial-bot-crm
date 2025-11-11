@@ -328,13 +328,17 @@ export class PipelineService {
   async getPipelineMetrics(dateFrom?: string, dateTo?: string) {
     try {
       // Usar función de base de datos para obtener métricas
-      const params = new URLSearchParams()
-      if (dateFrom) params.append('p_date_from', dateFrom)
-      if (dateTo) params.append('p_date_to', dateTo)
+      // Llamar a la función RPC de Supabase con POST body
+      const rpcBody = {
+        p_date_from: dateFrom || null,
+        p_date_to: dateTo || null
+      }
 
-      // Llamar a la función RPC de Supabase
-      const endpoint = `/rpc/get_pipeline_metrics${params.toString() ? '?' + params.toString() : ''}`
-      const rawMetrics = await supabase.request(endpoint, { method: 'POST' })
+      const endpoint = `/rpc/get_pipeline_metrics`
+      const rawMetrics = await supabase.request(endpoint, { 
+        method: 'POST',
+        body: JSON.stringify(rpcBody)
+      })
 
       // Transformar los datos a la estructura esperada
       const metrics = {

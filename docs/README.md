@@ -1,293 +1,311 @@
-# 📋 **DOCUMENTACIÓN TÉCNICA COMPLETA - CRM PHORENCIAL**
+# 📚 Documentación - CRM Phorencial
 
-## **Índice de Documentación**
-
-Esta documentación técnica completa está dividida en múltiples archivos para facilitar la navegación y el mantenimiento. Cada archivo contiene secciones específicas del plan de evolución del CRM Phorencial.
-
----
-
-## **📁 Estructura de Archivos**
-
-### **1. [plan-evolucion-crm-phorencial.md](./plan-evolucion-crm-phorencial.md)**
-
-**Contenido Principal:**
-
-- 📊 Resumen Ejecutivo de Hallazgos
-- 🗺️ Plan de Implementación Estructurado (Fases 1-5)
-- 🔧 Especificaciones Técnicas Detalladas (Secciones 3.1-3.4)
-
-**Secciones Incluidas:**
-
-- Estado actual del sistema y gaps identificados
-- Metodología de priorización y roadmap por fases
-- CRUD completo de leads con Next.js y Supabase
-- WhatsApp Business API integration
-- Pipeline de ventas y sistema de usuarios
-
-### **2. [plan-evolucion-crm-phorencial-parte2.md](./plan-evolucion-crm-phorencial-parte2.md)**
-
-**Contenido Técnico Avanzado:**
-
-- 🔧 Especificaciones Técnicas Detalladas (Secciones 3.5-3.6)
-- 📈 Métricas de Éxito y Criterios de Aceptación (Sección 4.1)
-
-**Secciones Incluidas:**
-
-- Automatización de workflows con Supabase Functions
-- Integración RENAPER para validación de DNI
-- KPIs detallados por cada fase de implementación
-- Criterios de aceptación técnicos y de negocio
-
-### **3. [plan-evolucion-crm-phorencial-parte3.md](./plan-evolucion-crm-phorencial-parte3.md)**
-
-**Métricas y Mejores Prácticas:**
-
-- 📈 Métricas Específicas para los 213 Leads de Formosa
-- 🛠️ Mejores Prácticas y Referencias Técnicas
-- 📋 Resumen de Entregables y Conclusiones
-
-**Secciones Incluidas:**
-
-- Dashboard de métricas de implementación
-- Mejores prácticas de Next.js, Supabase y WhatsApp API
-- ROI proyectado y recomendaciones finales
-- Referencias técnicas oficiales
+> **Centro de Documentación Técnica**  
+> Toda la información que necesitas para trabajar con el CRM Phorencial
 
 ---
 
-## **🎯 Resumen Ejecutivo**
+## 🎯 Inicio Rápido
 
-### **Estado Actual:**
+### ¿Primera Vez Aquí?
 
-✅ **213 leads operativos** del CSV de Formosa  
-✅ **Interfaz moderna** completamente funcional  
-✅ **Navegación completa** entre todos los módulos  
-✅ **Búsquedas y filtros** operativos con resultados precisos
+**Sigue este orden:**
 
-### **Objetivo Final:**
-
-🎯 **CRM empresarial completo** con automatización inteligente  
-🎯 **Comunicación bidireccional** vía WhatsApp y email  
-🎯 **Analytics avanzado** con insights accionables  
-🎯 **Escalabilidad** para 1000+ leads sin degradación
+1. 📊 Lee [ESTADO-ACTUAL.md](./ESTADO-ACTUAL.md) para entender dónde estamos
+2. 🚀 Sigue [SETUP-DESARROLLO.md](./SETUP-DESARROLLO.md) para configurar tu entorno
+3. 🏗️ Revisa [ARQUITECTURA.md](./ARQUITECTURA.md) para comprender el sistema
+4. 🎯 Consulta [PROXIMOS-PASOS.md](./PROXIMOS-PASOS.md) para saber qué trabajar
 
 ---
 
-## **📊 Plan de Implementación - Vista Rápida**
+## 📖 Documentación Principal
 
-| Fase          | Duración Estimada | Funcionalidades Principales | Impacto                     |
-| ------------- | ----------------- | --------------------------- | --------------------------- |
-| **🔧 Fase 1** | 4-6 semanas       | CRUD, Usuarios, Pipeline    | Gestión completa habilitada |
-| **📞 Fase 2** | 6-8 semanas       | WhatsApp, Email, RENAPER    | Comunicación directa        |
-| **🤖 Fase 3** | 4-6 semanas       | Workflows, Automatización   | Eficiencia operativa        |
-| **📊 Fase 4** | 3-4 semanas       | Dashboards, Reportes        | Insights de negocio         |
-| **🔒 Fase 5** | 2-3 semanas       | Seguridad, Escalabilidad    | Operación empresarial       |
+### 🌟 Esenciales (Lectura Obligatoria)
 
-**Total Estimado: 19-27 semanas (5-7 meses)**
+| Documento | ⏱️ Lectura | Descripción |
+|-----------|-----------|-------------|
+| [📊 Estado Actual](./ESTADO-ACTUAL.md) | 10 min | Estado detallado del proyecto, progreso, métricas y problemas conocidos |
+| [🚀 Setup de Desarrollo](./SETUP-DESARROLLO.md) | 30 min | Guía paso a paso para configurar el entorno de desarrollo |
+| [🏗️ Arquitectura](./ARQUITECTURA.md) | 20 min | Arquitectura del sistema, stack tecnológico y decisiones de diseño |
+| [🎯 Próximos Pasos](./PROXIMOS-PASOS.md) | 15 min | Roadmap priorizado, tareas pendientes y estimaciones |
 
----
+### 🔧 Guías Técnicas
 
-## **🔧 Stack Tecnológico**
+| Documento | ⏱️ Lectura | Descripción |
+|-----------|-----------|-------------|
+| [🔄 Migración Supabase](./MIGRACION-SUPABASE.md) | 20 min | Guía de migración Prisma → Supabase (80% completada) |
+| [📡 API Reference](./API-REFERENCE.md) | Referencia | Documentación completa de todos los endpoints (39 APIs) |
+| [🔧 Troubleshooting](./TROUBLESHOOTING.md) | Referencia | Solución de problemas comunes y debugging |
 
-### **Frontend:**
+### 🤝 Contribución
 
-- **Next.js 14+** con App Router
-- **TypeScript** para type safety
-- **Tailwind CSS** para UI consistente
-- **React Hook Form** + **Zod** para formularios
-
-### **Backend:**
-
-- **Supabase** como BaaS completo
-- **PostgreSQL** con Row Level Security
-- **Supabase Functions** para lógica serverless
-- **Supabase Auth** para autenticación
-
-### **Integraciones:**
-
-- **Meta WhatsApp Business API** v18.0+
-- **RENAPER API** para validación DNI
-- **SMTP Provider** para emails
-- **Recharts** para visualizaciones
+| Documento | ⏱️ Lectura | Descripción |
+|-----------|-----------|-------------|
+| [🤝 Contributing](./CONTRIBUTING.md) | 15 min | Guía completa para contribuir al proyecto |
 
 ---
 
-## **📈 Métricas de Éxito Clave**
+## 🗂️ Documentación por Tema
 
-### **Fase 1 - Core:**
+### 🏗️ Arquitectura y Diseño
 
-- ✅ 100% de leads editables sin pérdida de datos
-- ✅ < 30 segundos tiempo de edición por lead
-- ✅ < 2% tasa de error en validaciones
+- [Arquitectura General](./ARQUITECTURA.md#-visión-general)
+- [Stack Tecnológico](./ARQUITECTURA.md#-stack-tecnológico-detallado)
+- [Estructura de Carpetas](./ARQUITECTURA.md#-estructura-de-carpetas)
+- [Flujo de Datos](./ARQUITECTURA.md#-flujo-de-datos)
+- [Patrones de Diseño](./ARQUITECTURA.md#-patrones-de-diseño-utilizados)
+- [Decisiones Arquitectónicas](./ARQUITECTURA.md#-decisiones-arquitectónicas)
 
-### **Fase 2 - Comunicación:**
+### 💻 Desarrollo
 
-- ✅ > 95% tasa de entrega WhatsApp
-- ✅ > 90% DNIs validados correctamente
-- ✅ < 2 horas tiempo de primera respuesta
+- [Requisitos del Sistema](./SETUP-DESARROLLO.md#-requisitos-del-sistema)
+- [Instalación](./SETUP-DESARROLLO.md#-instalación-paso-a-paso)
+- [Configuración de Variables](./SETUP-DESARROLLO.md#-configuración-de-variables-de-entorno)
+- [Setup de Supabase](./SETUP-DESARROLLO.md#-setup-de-supabase)
+- [Comandos Útiles](./SETUP-DESARROLLO.md#-comandos-útiles)
+- [Estándares de Código](./CONTRIBUTING.md#-estándares-de-código)
 
-### **Fase 3 - Automatización:**
+### 🗄️ Base de Datos
 
-- ✅ 100% leads auto-asignados por zona
-- ✅ > 85% cumplimiento de tareas
-- ✅ > 50% reducción tiempo manual
+- [Migración a Supabase](./MIGRACION-SUPABASE.md)
+- [Estado de la Migración](./MIGRACION-SUPABASE.md#-estado-de-la-migración)
+- [Comparación Prisma vs Supabase](./MIGRACION-SUPABASE.md#-comparación-prisma-vs-supabase)
+- [Scripts de Migración](./MIGRACION-SUPABASE.md#-scripts-disponibles)
+- [Validación Post-Migración](./MIGRACION-SUPABASE.md#-validación-post-migración)
+- [Problemas Conocidos](./MIGRACION-SUPABASE.md#-problemas-conocidos)
 
-### **Fase 4 - Analytics:**
+### 📡 APIs
 
-- ✅ < 5 segundos generación de reportes
-- ✅ > 90% adopción de dashboards
-- ✅ 100% precisión de métricas
+- [Autenticación](./API-REFERENCE.md#-autenticación)
+- [Endpoints de Leads](./API-REFERENCE.md#-leads)
+- [Endpoints de Pipeline](./API-REFERENCE.md#-pipeline)
+- [Endpoints de Dashboard](./API-REFERENCE.md#-dashboard)
+- [Endpoints de Admin](./API-REFERENCE.md#-admin)
+- [Webhooks](./API-REFERENCE.md#-webhooks)
+- [Códigos de Error](./API-REFERENCE.md#-códigos-de-error)
+- [Ejemplos de Uso](./API-REFERENCE.md#-ejemplos-completos)
 
-### **Fase 5 - Seguridad:**
+### 🔧 Solución de Problemas
 
-- ✅ > 99.5% uptime del sistema
-- ✅ 0 errores Security Advisor (29/08/2025)
+- [Problemas de Setup](./TROUBLESHOOTING.md#-problemas-de-setup)
+- [Errores de Base de Datos](./TROUBLESHOOTING.md#-errores-de-base-de-datos)
+- [Problemas de Autenticación](./TROUBLESHOOTING.md#-problemas-de-autenticación)
+- [Errores del Pipeline](./TROUBLESHOOTING.md#-errores-del-pipeline)
+- [Problemas de Tests](./TROUBLESHOOTING.md#-problemas-de-tests)
+- [Errores de Deployment](./TROUBLESHOOTING.md#-errores-de-deployment)
+- [Performance Issues](./TROUBLESHOOTING.md#-performance-issues)
 
----
+### 🎯 Planificación
 
-## 🔐 **HITO DE SEGURIDAD - 29 AGOSTO 2025**
+- [Tareas Críticas](./PROXIMOS-PASOS.md#-semana-1-2-crítico)
+- [Alta Prioridad](./PROXIMOS-PASOS.md#-semana-3-4-alta-prioridad)
+- [Media Prioridad](./PROXIMOS-PASOS.md#-mes-2-media-prioridad)
+- [Mejoras Opcionales](./PROXIMOS-PASOS.md#-futuro-mejoras-opcionales)
+- [Estimaciones de Tiempo](./PROXIMOS-PASOS.md#-estimaciones-de-tiempo)
 
-### **🏆 Security Advisor Completamente Limpio**
+### 🤝 Contribución
 
-- ✅ **0 Errores** de seguridad
-- ✅ **0 Warnings** de configuración
-- ✅ **0 Sugerencias** pendientes
-
-### **🛡️ Funciones PostgreSQL Optimizadas**
-
-- ✅ `track_lead_changes()` - Con `SET search_path = ''`
-- ✅ `update_updated_at_column()` - Con `SET search_path = ''`
-- ✅ **SECURITY DEFINER** configurado correctamente
-- ✅ **Triggers recreados** automáticamente
-
-### **📊 Nivel de Seguridad Empresarial Alcanzado**
-
-- 🔒 **Todas las tablas** protegidas con RLS
-- 👥 **Sistema multi-usuario** robusto
-- 🛡️ **Políticas granulares** implementadas
-- ⚡ **Rendimiento optimizado** mantenido
-- 📋 **Auditoría completa** habilitada
-
-**📄 Documentación detallada:** [Estado de Seguridad 29 Agosto 2025](./estado-seguridad-29-agosto-2025.md)
-
----
-
-## 📁 **DOCUMENTOS ADICIONALES**
-
-### 🔄 **Migración y Implementación**
-
-- **[Plan de Migración Selectiva](./plan-migracion-selectiva.md)** - Estrategia de migración desde Formosa Leads Hub
-- **[Migración Completada - Resumen](./migracion-completada-resumen.md)** - Estado actual post-migración
-- **[Seguimiento de Implementación](./seguimiento-implementacion.md)** - Tracking de progreso
-
-### 🧪 **Testing y Calidad**
-
-- **[Plan de Implementación de Tests](./plan-implementacion-tests.md)** - Estrategia de testing E2E con Playwright
-
-### 📊 **Análisis Técnico**
-
-- **[Análisis Comparativo Formosa Leads Hub](./analisis-comparativo-formosa-leads-hub.md)** - Gap analysis detallado
-- **[Resumen Análisis Frontend](./resumen-analisis-frontend.md)** - Análisis de componentes UI
-- **[Arquitectura e Implementación](./arquitectura-implementacion.md)** - Detalles técnicos de arquitectura
-
-### 🔗 **Integraciones**
-
-- **[Activepieces](./activepieces.md)** - Configuración de automatización
-- **[n8n](./n8n.md)** - Alternativa de automatización
-
-### 🎨 **Desarrollo**
-
-- **[v0.dev Prompt](./v0-dev-prompt.md)** - Prompts para generación de UI
-- **[examples/](./examples/)** - Ejemplos de requests y responses
+- [Código de Conducta](./CONTRIBUTING.md#-código-de-conducta)
+- [Proceso de Desarrollo](./CONTRIBUTING.md#-proceso-de-desarrollo)
+- [Estándares de Código](./CONTRIBUTING.md#-estándares-de-código)
+- [Testing](./CONTRIBUTING.md#-testing)
+- [Pull Requests](./CONTRIBUTING.md#-pull-requests)
+- [Estructura de Commits](./CONTRIBUTING.md#-estructura-de-commits)
 
 ---
 
-_Última actualización: 29 Agosto 2025 - Security Advisor completamente limpio_
+## 📊 Estado del Proyecto
 
-## **💰 ROI Proyectado**
+### Progreso General: 85-90%
 
-### **Beneficios Cuantificables:**
+```
+Infraestructura        ████████████████████ 100%
+Autenticación          ███████████████████░  95%
+Gestión de Leads       ██████████████████░░  90%
+Dashboard              █████████████████░░░  85%
+Migración Supabase     ████████████████░░░░  80%
+Pipeline               ██████████████░░░░░░  70%
+Testing                ███████████████░░░░░  75%
+WhatsApp               ██████░░░░░░░░░░░░░░  30%
+Documentación          ████████████████░░░░  80%
+```
 
-- **+300% Productividad** en gestión de leads
-- **+25% Conversión** tasa de cierre
-- **-50% Tiempo** en tareas administrativas
-- **1000+ Leads** capacidad de escalabilidad
+### Métricas Clave
 
-### **Beneficios Cualitativos:**
-
-- **Profesionalización** del proceso de ventas
-- **Trazabilidad completa** de interacciones
-- **Compliance** con regulaciones argentinas
-- **Insights** para optimización continua
-
----
-
-## **🚀 Próximos Pasos Recomendados**
-
-### **Inmediatos (Próximas 2 semanas):**
-
-1. **Revisar documentación técnica completa**
-2. **Validar stack tecnológico propuesto**
-3. **Confirmar integraciones requeridas** (WhatsApp, RENAPER)
-4. **Definir equipo de desarrollo**
-
-### **Preparación (Semanas 3-4):**
-
-1. **Configurar entorno de desarrollo**
-2. **Obtener credenciales de APIs externas**
-3. **Planificar migración de datos**
-4. **Establecer métricas de baseline**
-
-### **Inicio de Implementación (Semana 5):**
-
-1. **Comenzar Fase 1: CRUD y Usuarios**
-2. **Configurar CI/CD pipeline**
-3. **Implementar testing automatizado**
-4. **Establecer monitoreo de métricas**
+- **Líneas de Código:** ~15,000 (TypeScript/JavaScript)
+- **Tests:** 70+ (E2E + Unitarios)
+- **APIs:** 39 endpoints
+- **Componentes:** 58 componentes React
+- **Leads:** 233+ registros reales
+- **Cobertura:** ~75%
 
 ---
 
-## **📞 Contacto y Soporte**
+## 🔍 Búsqueda Rápida
 
-Para consultas sobre esta documentación o el plan de implementación:
+### ¿Cómo hacer...?
 
-- **Documentación Técnica**: Revisar archivos específicos por sección
-- **Mejores Prácticas**: Consultar referencias oficiales incluidas
-- **Implementación**: Seguir roadmap por fases detallado
-
----
-
-## **📚 Referencias Oficiales**
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Supabase Documentation](https://supabase.com/docs)
-- [WhatsApp Business API](https://developers.facebook.com/docs/whatsapp)
-- [PostgreSQL RLS](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+| Tarea | Documento | Sección |
+|-------|-----------|---------|
+| Configurar el entorno | [Setup](./SETUP-DESARROLLO.md) | Instalación |
+| Crear un lead | [API Reference](./API-REFERENCE.md) | Leads → Crear |
+| Ejecutar tests | [Setup](./SETUP-DESARROLLO.md) | Comandos Útiles |
+| Solucionar error de pipeline | [Troubleshooting](./TROUBLESHOOTING.md) | Pipeline |
+| Contribuir código | [Contributing](./CONTRIBUTING.md) | Proceso |
+| Migrar datos | [Migración](./MIGRACION-SUPABASE.md) | Pasos |
+| Ver arquitectura | [Arquitectura](./ARQUITECTURA.md) | Visión General |
+| Próximas tareas | [Próximos Pasos](./PROXIMOS-PASOS.md) | Crítico |
 
 ---
 
-**🎯 El CRM Phorencial está listo para evolucionar hacia un sistema empresarial completo y competitivo para el mercado de Formosa.**
+## 🚨 Problemas Comunes
 
-### **6. [actualizacion-septiembre-2025.md](./actualizacion-septiembre-2025.md)** 🆕
+### Top 5 Problemas y Soluciones
 
-**Actualización Reciente:**
+1. **Pipeline no se crea automáticamente**
+   - 📖 [Solución](./TROUBLESHOOTING.md#pipeline-no-crea-automáticamente-)
+   - ⏱️ 30 minutos
 
-- 🧹 **Limpieza de duplicados completada**: 194 registros eliminados, 232 leads únicos
-- 📊 **Contador dinámico del sidebar**: Reemplazado "1,247" hardcodeado por datos reales
-- 🔧 **Scripts de análisis implementados**: check-duplicates.js y clean-duplicates.js
-- 🎯 **Próximos pasos críticos identificados**: CRUD, usuarios, pipeline
+2. **Error de conexión a Supabase**
+   - 📖 [Solución](./TROUBLESHOOTING.md#error-de-conexión-a-supabase)
+   - ⏱️ 10 minutos
 
-**Secciones Incluidas:**
+3. **NextAuth no funciona**
+   - 📖 [Solución](./TROUBLESHOOTING.md#nextauth-error-oauth_callback_error)
+   - ⏱️ 15 minutos
 
-- Análisis detallado de duplicados eliminados
-- Cambios técnicos en sidebar dinámico
-- Validación de resultados y métricas
-- Roadmap actualizado con prioridades críticas
+4. **Tests de Playwright fallan**
+   - 📖 [Solución](./TROUBLESHOOTING.md#playwright-executable-doesnt-exist)
+   - ⏱️ 5 minutos
+
+5. **Variables de entorno no se cargan**
+   - 📖 [Solución](./TROUBLESHOOTING.md#error-variables-de-entorno-no-se-cargan)
+   - ⏱️ 5 minutos
 
 ---
 
-_Documentación generada: Agosto 2025_
-_Última actualización: Septiembre 2025_
-_Versión: 1.1_
-_Estado: Base de datos limpia - Lista para CRUD crítico_
+## 📚 Documentación Externa
+
+### Tecnologías Principales
+
+| Tecnología | Documentación Oficial |
+|------------|----------------------|
+| Next.js | [nextjs.org/docs](https://nextjs.org/docs) |
+| Supabase | [supabase.com/docs](https://supabase.com/docs) |
+| NextAuth.js | [next-auth.js.org](https://next-auth.js.org) |
+| Tailwind CSS | [tailwindcss.com/docs](https://tailwindcss.com/docs) |
+| shadcn/ui | [ui.shadcn.com](https://ui.shadcn.com) |
+| Playwright | [playwright.dev/docs](https://playwright.dev/docs) |
+| React Query | [tanstack.com/query](https://tanstack.com/query/latest) |
+| TypeScript | [typescriptlang.org/docs](https://www.typescriptlang.org/docs) |
+
+---
+
+## 🎓 Guías de Aprendizaje
+
+### Para Nuevos Desarrolladores
+
+**Día 1: Entender el Proyecto**
+1. ✅ Leer [Estado Actual](./ESTADO-ACTUAL.md) (10 min)
+2. ✅ Revisar [Arquitectura](./ARQUITECTURA.md) (20 min)
+3. ✅ Explorar el código fuente (30 min)
+
+**Día 2: Configurar Entorno**
+1. ✅ Seguir [Setup de Desarrollo](./SETUP-DESARROLLO.md) (60 min)
+2. ✅ Ejecutar la aplicación (15 min)
+3. ✅ Ejecutar tests (15 min)
+
+**Día 3: Primera Contribución**
+1. ✅ Leer [Contributing](./CONTRIBUTING.md) (15 min)
+2. ✅ Encontrar un `good first issue` (10 min)
+3. ✅ Hacer tu primer PR (2-4 horas)
+
+---
+
+## 🔄 Actualizaciones
+
+### Última Actualización
+- **Fecha:** 22 de Octubre, 2025
+- **Versión:** 0.9.0
+
+### Cambios Recientes
+- ✅ Documentación completa creada
+- ✅ Estado del proyecto actualizado
+- ✅ Guías de migración a Supabase
+- ✅ API Reference completada
+- ✅ Troubleshooting expandido
+
+### Próximas Actualizaciones
+- [ ] Ejemplos de código adicionales
+- [ ] Videos tutoriales
+- [ ] FAQ expandido
+- [ ] Diagramas interactivos
+
+---
+
+## 💡 Tips y Consejos
+
+### Para Desarrolladores
+
+1. **Usa los scripts de verificación:**
+   ```bash
+   node test-supabase-connection.js
+   node test-fmc-migration-complete.js
+   ```
+
+2. **Mantén tu entorno actualizado:**
+   ```bash
+   git fetch upstream
+   git merge upstream/main
+   npm install
+   ```
+
+3. **Ejecuta tests antes de hacer PR:**
+   ```bash
+   npm run lint
+   npm run type-check
+   npm run test:jest
+   npm run build
+   ```
+
+4. **Usa las herramientas de debug:**
+   - React DevTools
+   - Chrome DevTools
+   - Playwright Inspector
+
+---
+
+## 📞 Soporte
+
+### ¿Necesitas Ayuda?
+
+1. **Busca en la documentación** usando Ctrl+F
+2. **Revisa [Troubleshooting](./TROUBLESHOOTING.md)**
+3. **Busca en [Issues de GitHub](https://github.com/SantiagoXOR/phorencial-bot-crm/issues)**
+4. **Crea un nuevo issue** con detalles
+
+### Canales de Comunicación
+
+- 💬 **GitHub Issues:** Para bugs y features
+- 📧 **Email:** [contacto del proyecto]
+- 💡 **Discussions:** Para preguntas y ideas
+
+---
+
+## 🏆 Contribuyentes
+
+Gracias a todos los que han contribuido a este proyecto!
+
+Ver lista completa en [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver [LICENSE](../LICENSE) para más detalles.
+
+---
+
+**🎉 ¡Bienvenido al equipo de CRM Phorencial!**
+
+Si tienes sugerencias para mejorar esta documentación, por favor abre un issue o PR.

@@ -9,6 +9,18 @@ type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING'
 
 export const authOptions: NextAuthOptions = {
   // Removemos el adapter de Prisma ya que usamos Supabase directamente
+  debug: true, // Habilitar debug para ver más logs
+  logger: {
+    error(code, metadata) {
+      console.error('NextAuth Error:', code, metadata)
+    },
+    warn(code) {
+      console.warn('NextAuth Warning:', code)
+    },
+    debug(code, metadata) {
+      console.log('NextAuth Debug:', code, metadata)
+    }
+  },
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -17,61 +29,89 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
+        console.log('🔍 Iniciando authorize con:', { email: credentials?.email })
+        
         if (!credentials?.email || !credentials?.password) {
+          console.log('❌ Credenciales faltantes')
           return null
         }
 
-        // Intentar primero con la tabla nueva
-        let user = await supabase.findUserByEmailNew(credentials.email)
+        try {
+          // Intentar primero con la tabla nueva
+          let user = await supabase.findUserByEmailNew(credentials.email)
+          console.log('👤 Usuario encontrado:', !!user)
 
-        // Si no se encuentra, intentar con la tabla antigua
-        if (!user) {
-          const oldUser = await supabase.findUserByEmail(credentials.email)
-          if (oldUser) {
-            user = {
-              id: oldUser.id,
-              email: oldUser.email,
-              nombre: oldUser.nombre,
-              apellido: '',
-              role: oldUser.rol,
-              status: 'ACTIVE', // Asumir activo para usuarios existentes
-              password_hash: oldUser.hash
+          // Si no se encuentra, intentar con la tabla antigua
+          if (!user) {
+            console.log('🔄 Intentando con tabla antigua...')
+            const oldUser = await supabase.findUserByEmail(credentials.email)
+            if (oldUser) {
+              user = {
+                id: oldUser.id,
+                email: oldUser.email,
+                nombre: oldUser.nombre,
+                apellido: '',
+                role: oldUser.rol,
+                status: 'ACTIVE', // Asumir activo para usuarios existentes
+                hash: oldUser.hash
+              }
             }
           }
-        }
 
-        if (!user) {
+          if (!user) {
+            console.log('❌ Usuario no encontrado')
+            return null
+          }
+
+          console.log('🔑 Verificando contraseña...', { hasHash: !!user.hash })
+
+          // Verificar contraseña
+          let isPasswordValid = false
+
+          if (user.hash) {
+            isPasswordValid = await bcrypt.compare(credentials.password, user.hash)
+            console.log('🔐 Resultado bcrypt:', isPasswordValid)
+          } else {
+            // Para usuarios sin hash, verificar contraseñas de prueba
+            const testPasswords = ['admin123', 'analista123', 'vendedor123', 'password']
+            isPasswordValid = testPasswords.includes(credentials.password)
+            console.log('🔐 Resultado contraseña de prueba:', isPasswordValid)
+          }
+
+          if (!isPasswordValid) {
+            console.log('❌ Contraseña inválida')
+            return null
+          }
+
+          // Actualizar último login si la función existe
+          try {
+            await supabase.updateUserLastLogin(user.id)
+          } catch (error) {
+            console.log('⚠️ No se pudo actualizar último login:', error)
+          }
+
+          const result = {
+            id: user.id,
+            email: user.email,
+            name: `${user.nombre} ${user.apellido || ''}`.trim(),
+            role: user.role as UserRole,
+            status: (user.status || 'ACTIVE') as UserStatus,
+          }
+          
+          console.log('✅ Authorize exitoso:', { id: result.id, email: result.email, role: result.role })
+          return result
+
+        } catch (error: any) {
+          console.error('❌ Error en authorize:', error.message)
+          console.error('   Tipo de error:', error.constructor.name)
+          console.error('   Stack:', error.stack)
+          
+          // Si es un error de conexión a Supabase, proporcionar mensaje específico
+          if (error.message.includes('Error de conexión a Supabase')) {
+            console.error('🔌 Error de conectividad con Supabase. Verifique la configuración de red.')
+          }
+          
           return null
-        }
-
-        // Verificar contraseña
-        let isPasswordValid = false
-
-        if (user.password_hash) {
-          isPasswordValid = await bcrypt.compare(credentials.password, user.password_hash)
-        } else {
-          // Para usuarios sin hash, verificar contraseñas de prueba
-          const testPasswords = ['admin123', 'analista123', 'vendedor123', 'password']
-          isPasswordValid = testPasswords.includes(credentials.password)
-        }
-
-        if (!isPasswordValid) {
-          return null
-        }
-
-        // Actualizar último login si la función existe
-        try {
-          await supabase.updateUserLastLogin(user.id)
-        } catch (error) {
-          // No se pudo actualizar último login
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: `${user.nombre} ${user.apellido || ''}`.trim(),
-          role: user.role as UserRole,
-          status: (user.status || 'ACTIVE') as UserStatus,
         }
       }
     })

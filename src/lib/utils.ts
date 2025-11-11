@@ -40,3 +40,12 @@ export function formatDate(date: Date): string {
     minute: '2-digit',
   }).format(date)
 }
+
+// WhatsApp configuration
+export const WHATSAPP_NUMBER_E164 = '+5493704285453'
+
+export function getWhatsAppUrl(message?: string): string {
+  const defaultMessage = 'Hola, me interesa obtener más información sobre los créditos para motos.'
+  const encodedMessage = encodeURIComponent(message || defaultMessage)
+  return `https://wa.me/5493704285453?text=${encodedMessage}`
+}

@@ -4,13 +4,14 @@
 
 **CRM Phorencial** es un sistema de gestión de leads específicamente diseñado para la provincia de Formosa, Argentina.
 
-**🚧 ESTADO ACTUAL:** Sistema en desarrollo activo con funcionalidades básicas implementadas. Ver [Plan de Implementación](docs/PLAN-IMPLEMENTACION-CRM-PHORENCIAL.md) para roadmap completo.
+**🚧 ESTADO ACTUAL:** Sistema en desarrollo avanzado con migración a Supabase en proceso. Ver [Estado Actual](docs/ESTADO-ACTUAL.md) para detalles completos.
 
-**📊 COMPLETITUD:** ~35% implementado
+**📊 COMPLETITUD:** ~85-90% implementado
 
-- ✅ Arquitectura base y APIs básicas
-- 🔄 UI y funcionalidades en desarrollo
-- ❌ Tests E2E y integraciones pendientes
+- ✅ Funcionalidades core operativas
+- 🔄 Migración a Supabase (80% completada)
+- ✅ 70+ tests E2E implementados
+- ⚠️ Pipeline de ventas requiere configuración
 
 ### ✨ Características Implementadas
 
@@ -29,25 +30,64 @@
 - 📁 **Gestión de Documentos**: UI creada, funcionalidad backend pendiente
 - ⚙️ **Configuración**: Páginas creadas, integración pendiente
 
+#### **🆕 Integración Manychat (Nuevo - COMPLETO)**
+
+**Backend (API y Servicios):**
+- ✅ **Integración Híbrida Manychat-CRM**: Completamente implementado
+- ✅ **Sincronización Bidireccional**: Leads, tags y custom fields
+- ✅ **Webhooks**: 5 eventos procesados automáticamente
+- ✅ **API Completa**: 6 endpoints funcionando
+- ✅ **Rate Limiting**: 100 req/s automático
+
+**Frontend (UI Completa):**
+- ✅ **12 Componentes UI**: Tags, sync, broadcasts, flujos
+- ✅ **4 Páginas Nuevas**: Dashboard, Broadcasts, Flujos, Configuración
+- ✅ **3 Hooks Personalizados**: Sync, tags, métricas
+- ✅ **Integración en Chat**: Indicadores bot/agente, flujos activos
+- ✅ **Integración en Leads**: Tags visibles, sincronización manual
+
+📖 **Documentación:**
+- [Guía de Setup](docs/MANYCHAT-SETUP.md) - Configuración paso a paso
+- [Documentación Técnica](docs/MANYCHAT-INTEGRATION.md) - Arquitectura y API
+- [Resumen UI](MANYCHAT-UI-FINAL-SUMMARY.md) - Componentes implementados
+
 #### **❌ Pendientes de Implementar**
 
-- 🔗 **Integración WhatsApp**: Solo documentación
 - 🎯 **Sistema de Scoring**: Planificado
 - 📈 **Reportes Avanzados**: En roadmap
 - 🔍 **Filtros Inteligentes**: Básicos implementados
 - 📝 **Audit Trail**: Estructura básica
 
+## 🎨 Design System
+
+### **Sistema de Diseño FMC**
+
+El CRM implementa un sistema de diseño moderno inspirado en Prometheo con una paleta de colores púrpura como elemento principal.
+
+#### **Documentación del Design System**
+
+- 📖 **[Design System Completo](docs/DESIGN-SYSTEM.md)** - Paleta de colores, tipografía, espaciado y patrones
+- 🧩 **[Guía de Componentes UI](docs/COMPONENTES-UI.md)** - Componentes personalizados y patrones de uso
+
+#### **Características del Diseño**
+
+- **Paleta Principal**: Púrpura (#a855f7) como color de marca
+- **Tipografía**: Sans-serif system font para máxima compatibilidad
+- **Layout**: Sidebar fijo con navegación jerárquica
+- **Componentes**: Cards con hover effects y transiciones suaves
+- **Responsive**: Mobile-first con breakpoints consistentes
+
 ## 🏗 Arquitectura Técnica
 
 ### **Stack Tecnológico**
 
-- **Framework**: Next.js 14 + App Router + TypeScript
-- **UI Library**: shadcn/ui + Tailwind CSS
-- **Base de Datos**: Supabase (PostgreSQL)
-- **Autenticación**: NextAuth.js
-- **Gráficos**: Recharts
-- **Deployment**: Vercel
-- **Integración**: Activepieces Cloud (flujos serverless)
+- **Framework**: Next.js 14.2.15 + App Router + TypeScript 5
+- **UI Library**: shadcn/ui + Tailwind CSS + Radix UI
+- **Base de Datos**: Supabase (PostgreSQL) - Migrado desde Prisma
+- **Autenticación**: NextAuth.js 4.24 con JWT
+- **Gráficos**: Recharts 3.1
+- **Testing**: Playwright + Jest + Vitest
+- **Deployment**: Vercel + Supabase Cloud
 
 ### **Componentes Principales**
 
@@ -96,12 +136,12 @@ src/
 
 ### **Prerrequisitos**
 
-- Node.js 18+
-- npm o yarn
-- Cuenta de Supabase
-- Variables de entorno configuradas
+- Node.js 20+ (recomendado)
+- npm 10+
+- Cuenta de Supabase (gratis)
+- Git
 
-### **Instalación**
+### **Instalación Rápida**
 
 ```bash
 # Clonar repositorio
@@ -112,32 +152,54 @@ cd phorencial-bot-crm
 npm install
 
 # Configurar variables de entorno
-cp .env.example .env.local
-# Editar .env.local con tus credenciales
+# Crear .env.local y agregar tus credenciales de Supabase
+touch .env.local
 
 # Ejecutar en desarrollo
 npm run dev
 ```
 
-### **Variables de Entorno**
+**📚 Para setup detallado, ver [SETUP-DESARROLLO.md](docs/SETUP-DESARROLLO.md)**
+
+### **Variables de Entorno Esenciales**
 
 ```env
-# Database (Supabase)
-DATABASE_URL="postgresql://username:password@db.supabase.co:5432/postgres"
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL="https://xxx.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIs..."
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIs..."
+DATABASE_URL="postgresql://postgres.[REF]:[PASSWORD]@..."
 
 # NextAuth
-NEXTAUTH_SECRET="tu-secret-key-aqui"
+NEXTAUTH_SECRET="generar-con-openssl-rand-hex-32"
 NEXTAUTH_URL="http://localhost:3000"
+JWT_SECRET="otro-secret-diferente"
 
-# JWT
-JWT_SECRET="tu-jwt-secret-aqui"
-
-# Webhook Security
-ALLOWED_WEBHOOK_TOKEN="super-seguro"
-
-# App Environment
+# Entorno
 APP_ENV="development"
+NODE_ENV="development"
 ```
+
+**📚 Ver configuración completa en [SETUP-DESARROLLO.md](docs/SETUP-DESARROLLO.md)**
+
+### **Configuración de Manychat (Opcional)**
+
+Para habilitar la integración híbrida con Manychat:
+
+```env
+# Manychat Configuration
+MANYCHAT_API_KEY=MCAPIKey-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+MANYCHAT_BASE_URL=https://api.manychat.com
+MANYCHAT_WEBHOOK_SECRET=your-webhook-secret-here
+```
+
+**📖 Guía completa:** [MANYCHAT-SETUP.md](docs/MANYCHAT-SETUP.md)
+
+**Características de la integración:**
+- ✅ Flujos automáticos y chatbots en Manychat
+- ✅ Agentes pueden ver y responder desde el CRM
+- ✅ Sincronización bidireccional de leads, tags y custom fields
+- ✅ Broadcasts masivos desde el CRM
 
 ### 3. Configurar la base de datos
 
@@ -433,32 +495,37 @@ Este proyecto es el resultado de una **migración selectiva exitosa** que combin
 
 ---
 
-## 📚 Documentación Técnica Completa
+## 📚 Documentación Completa
 
-### **🔄 Migración Selectiva**
+### **📖 Documentación Principal**
 
-- [`docs/analisis-comparativo-formosa-leads-hub.md`](docs/analisis-comparativo-formosa-leads-hub.md) - Análisis comparativo completo
-- [`docs/plan-migracion-selectiva.md`](docs/plan-migracion-selectiva.md) - Plan de migración ejecutado
-- [`docs/migracion-completada-resumen.md`](docs/migracion-completada-resumen.md) - Resumen de migración exitosa
+| Documento | Descripción |
+|-----------|-------------|
+| [📊 Estado Actual](docs/ESTADO-ACTUAL.md) | Estado detallado del proyecto (85-90% completo) |
+| [🚀 Setup de Desarrollo](docs/SETUP-DESARROLLO.md) | Guía completa de instalación y configuración |
+| [🏗️ Arquitectura](docs/ARQUITECTURA.md) | Arquitectura del sistema y decisiones técnicas |
+| [🔄 Migración Supabase](docs/MIGRACION-SUPABASE.md) | Guía de migración Prisma → Supabase (80%) |
+| [🎯 Próximos Pasos](docs/PROXIMOS-PASOS.md) | Roadmap priorizado y tareas pendientes |
+| [📡 API Reference](docs/API-REFERENCE.md) | Documentación completa de 39 endpoints |
+| [🔧 Troubleshooting](docs/TROUBLESHOOTING.md) | Solución de problemas comunes |
+| [🤝 Contribuir](docs/CONTRIBUTING.md) | Guía para nuevos contribuyentes |
 
-### **🧪 Tests End-to-End (1,078 tests)**
+### **📂 Ver Todas las Docs**
 
-- [`docs/plan-implementacion-tests.md`](docs/plan-implementacion-tests.md) - Plan para 1,078 tests E2E
-- [`docs/seguimiento-implementacion.md`](docs/seguimiento-implementacion.md) - Tracking de progreso
-- [`docs/arquitectura-implementacion.md`](docs/arquitectura-implementacion.md) - Arquitectura técnica
-- [`tests/README.md`](tests/README.md) - Guía completa de tests
+**[→ Índice Completo de Documentación](docs/README.md)**
 
-### **🏗️ Arquitectura y Desarrollo**
+### **🧪 Testing**
 
-- [`FRONTEND_SETUP.md`](FRONTEND_SETUP.md) - Setup del frontend
-- [`docs/activepieces.md`](docs/activepieces.md) - Integración con Activepieces
+- [`TESTING.md`](TESTING.md) - Guía de testing (70+ tests E2E + Unitarios)
+- [`tests/README.md`](tests/README.md) - Tests de Playwright
 - [`playwright.config.ts`](playwright.config.ts) - Configuración de tests
 
-### **📊 Estado Actual**
+### **📊 Estado del Proyecto**
 
-- ✅ **Migración selectiva completada** - UI moderna + funcionalidad preservada
-- ✅ **1000+ leads reales de Formosa** - Datos específicos mantenidos
-- ✅ **Suite de tests E2E implementada** - 1,078 tests en 7 navegadores
-- 🔄 **Implementación en progreso** - Plan de 3 fases para tests exitosos
+- ✅ **Funcionalidades Core:** Operativas (90%)
+- 🔄 **Migración Supabase:** En proceso (80%)
+- ✅ **233+ leads reales** importados de Formosa
+- ✅ **70+ tests** implementados y pasando
+- ⚠️ **Pipeline de ventas:** Requiere configuración SQL (ver docs)
 
-**¡El CRM Phorencial está evolucionando hacia el sistema más robusto y validado de gestión de leads!** 🎯
+**Ver detalles completos en [ESTADO-ACTUAL.md](docs/ESTADO-ACTUAL.md)** 🎯
