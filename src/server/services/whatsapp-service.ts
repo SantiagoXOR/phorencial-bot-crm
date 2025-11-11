@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client'
+import { supabase } from '@/lib/db'
 import { ConversationService } from './conversation-service'
 import { ManychatService } from './manychat-service'
 import { ManychatSyncService } from './manychat-sync-service'
 import { ManychatMessage } from '@/types/manychat'
-
-const prisma = new PrismaClient()
+import { WhatsAppBusinessAPI, WhatsAppAPIError, formatWhatsAppNumber, isValidWhatsAppNumber } from '@/lib/integrations/whatsapp-business-api'
 
 export interface WhatsAppMessage {
   id: string
@@ -46,13 +45,27 @@ export interface SendMessageData {
 }
 
 export class WhatsAppService {
-  // Mantener credenciales de Meta como fallback
-  private static readonly WHATSAPP_API_URL = process.env.WHATSAPP_API_URL || 'https://graph.facebook.com/v18.0'
-  private static readonly WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID
-  private static readonly WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN
+  // Cliente robusto de WhatsApp Business API
+  private static whatsappClient: WhatsAppBusinessAPI | null = WhatsAppBusinessAPI.fromEnv()
   
   // Usar Manychat como prioridad
   private static readonly USE_MANYCHAT = ManychatService.isConfigured()
+
+  /**
+   * Verificar si WhatsApp está configurado
+   */
+  static isConfigured(): boolean {
+    return this.USE_MANYCHAT || !!this.whatsappClient
+  }
+
+  /**
+   * Obtener proveedor activo (manychat o whatsapp)
+   */
+  static getActiveProvider(): 'manychat' | 'whatsapp' | 'none' {
+    if (this.USE_MANYCHAT) return 'manychat'
+    if (this.whatsappClient) return 'whatsapp'
+    return 'none'
+  }
 
   /**
    * Procesar mensaje entrante de WhatsApp
@@ -76,9 +89,7 @@ export class WhatsAppService {
       
       if (!conversation) {
         // Buscar lead existente por teléfono
-        const lead = await prisma.lead.findFirst({
-          where: { telefono: from }
-        })
+        const lead = await supabase.findLeadByPhoneOrDni(from)
 
         // Crear nueva conversación
         conversation = await ConversationService.createConversation({
@@ -137,9 +148,7 @@ export class WhatsAppService {
 
       // Si no existe, buscar lead en CRM y sincronizar
       if (!subscriber) {
-        const lead = await prisma.lead.findFirst({
-          where: { telefono: data.to },
-        })
+        const lead = await supabase.findLeadByPhoneOrDni(data.to)
 
         if (lead) {
           // Sincronizar lead a Manychat
@@ -206,48 +215,79 @@ export class WhatsAppService {
   }
 
   /**
-   * Enviar mensaje usando Meta API (fallback)
+   * Enviar mensaje usando Meta API (fallback) con el cliente robusto
    */
   private static async sendMessageViaMetaAPI(data: SendMessageData) {
     try {
-      if (!this.WHATSAPP_ACCESS_TOKEN || !this.WHATSAPP_PHONE_NUMBER_ID) {
-        throw new Error('WhatsApp credentials not configured')
+      if (!this.whatsappClient) {
+        throw new Error('WhatsApp Business API not configured. Please set WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN')
       }
 
-      const messageData = this.buildMessagePayload(data)
-      
-      const response = await fetch(
-        `${this.WHATSAPP_API_URL}/${this.WHATSAPP_PHONE_NUMBER_ID}/messages`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.WHATSAPP_ACCESS_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(messageData)
-        }
-      )
-
-      if (!response.ok) {
-        const error = await response.text()
-        throw new Error(`WhatsApp API error: ${error}`)
+      // Validar número de teléfono
+      if (!isValidWhatsAppNumber(data.to)) {
+        throw new Error(`Invalid WhatsApp number format: ${data.to}`)
       }
 
-      const result = await response.json()
+      const formattedPhone = formatWhatsAppNumber(data.to)
+      let response
+
+      // Enviar según el tipo de mensaje
+      if (data.messageType === 'text' || !data.messageType) {
+        response = await this.whatsappClient.sendTextMessage({
+          to: formattedPhone,
+          text: data.message,
+          previewUrl: true,
+        })
+      } else if (data.mediaUrl && ['image', 'video', 'audio', 'document'].includes(data.messageType)) {
+        response = await this.whatsappClient.sendMediaMessage({
+          to: formattedPhone,
+          type: data.messageType as 'image' | 'video' | 'audio' | 'document',
+          url: data.mediaUrl,
+          caption: data.message,
+          filename: data.messageType === 'document' ? 'document.pdf' : undefined,
+        })
+      } else {
+        // Fallback a texto
+        response = await this.whatsappClient.sendTextMessage({
+          to: formattedPhone,
+          text: data.message,
+        })
+      }
+
+      console.log('[WhatsApp] Message sent successfully:', {
+        messageId: response.messages?.[0]?.id,
+        to: formattedPhone,
+        type: data.messageType || 'text',
+      })
+
       return {
         success: true,
-        messageId: result.messages?.[0]?.id,
-        provider: 'meta',
-        ...result,
+        messageId: response.messages?.[0]?.id,
+        provider: 'whatsapp',
+        waId: response.contacts?.[0]?.wa_id,
       }
     } catch (error) {
-      console.error('Error en sendMessageViaMetaAPI:', error)
+      console.error('[WhatsApp] Error sending message:', error)
+      
+      // Manejo especial para errores de la API de WhatsApp
+      if (error instanceof WhatsAppAPIError) {
+        console.error('[WhatsApp] API Error Details:', error.getDetails())
+        
+        if (error.isRateLimitError()) {
+          throw new Error('Rate limit exceeded. Please try again later.')
+        }
+        
+        if (error.isInvalidNumberError()) {
+          throw new Error(`Invalid phone number: ${data.to}`)
+        }
+      }
+      
       throw error
     }
   }
 
   /**
-   * Crear mensaje en la base de datos
+   * Crear mensaje en la base de datos (Event log)
    */
   static async createMessage(data: {
     conversationId: string
@@ -258,20 +298,19 @@ export class WhatsAppService {
     platformMsgId?: string
   }) {
     try {
-      const message = await prisma.message.create({
-        data: {
-          conversationId: data.conversationId,
-          direction: data.direction,
-          content: data.content,
-          messageType: data.messageType,
-          mediaUrl: data.mediaUrl,
-          platformMsgId: data.platformMsgId,
-          sentAt: new Date(),
-          ...(data.direction === 'outbound' && { deliveredAt: new Date() })
-        }
+      // TODO: Si existe tabla de messages en Supabase, usar esa
+      // Por ahora, registrar como evento
+      console.log('[WhatsApp] Message created:', {
+        direction: data.direction,
+        type: data.messageType,
+        conversationId: data.conversationId,
       })
 
-      return message
+      return {
+        id: data.platformMsgId || Date.now().toString(),
+        ...data,
+        sentAt: new Date(),
+      }
     } catch (error) {
       console.error('Error creating message:', error)
       throw error
@@ -283,10 +322,13 @@ export class WhatsAppService {
    */
   static async markAsRead(messageId: string) {
     try {
-      await prisma.message.update({
-        where: { id: messageId },
-        data: { readAt: new Date() }
-      })
+      // TODO: Implementar cuando exista tabla de messages
+      console.log('[WhatsApp] Message marked as read:', messageId)
+      
+      // Si usamos WhatsApp Business API, marcar en la plataforma
+      if (this.whatsappClient) {
+        await this.whatsappClient.markAsRead(messageId)
+      }
     } catch (error) {
       console.error('Error marking message as read:', error)
       throw error
@@ -298,12 +340,11 @@ export class WhatsAppService {
    */
   static async getConversationHistory(conversationId: string) {
     try {
-      const messages = await prisma.message.findMany({
-        where: { conversationId },
-        orderBy: { sentAt: 'asc' }
-      })
-
-      return messages
+      // TODO: Implementar cuando exista tabla de messages o usar eventos
+      console.log('[WhatsApp] Fetching conversation history for:', conversationId)
+      
+      // Por ahora, retornar vacío
+      return []
     } catch (error) {
       console.error('Error fetching conversation history:', error)
       throw error
@@ -354,53 +395,7 @@ export class WhatsAppService {
    */
   private static extractMediaUrl(message: WhatsAppMessage): string | undefined {
     const media = message.image || message.video || message.audio || message.document
-    return media?.id ? `${this.WHATSAPP_API_URL}/${media.id}` : undefined
-  }
-
-  /**
-   * Construir payload para envío de mensaje
-   */
-  private static buildMessagePayload(data: SendMessageData) {
-    const basePayload = {
-      messaging_product: 'whatsapp',
-      to: data.to,
-    }
-
-    if (data.messageType === 'text' || !data.messageType) {
-      return {
-        ...basePayload,
-        type: 'text',
-        text: { body: data.message }
-      }
-    }
-
-    if (data.messageType === 'image' && data.mediaUrl) {
-      return {
-        ...basePayload,
-        type: 'image',
-        image: {
-          link: data.mediaUrl,
-          caption: data.message
-        }
-      }
-    }
-
-    if (data.messageType === 'document' && data.mediaUrl) {
-      return {
-        ...basePayload,
-        type: 'document',
-        document: {
-          link: data.mediaUrl,
-          filename: 'document.pdf'
-        }
-      }
-    }
-
-    // Fallback a texto
-    return {
-      ...basePayload,
-      type: 'text',
-      text: { body: data.message }
-    }
+    // Para WhatsApp Business API, el ID del media necesita descargarse por separado
+    return media?.id ? media.id : undefined
   }
 }
