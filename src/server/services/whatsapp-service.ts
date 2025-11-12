@@ -432,3 +432,6 @@ export class WhatsAppService {
     return media?.id ? media.id : undefined
   }
 }
+
+// Exportar instancia del servicio para uso en otros módulos
+export const whatsappService = WhatsAppService

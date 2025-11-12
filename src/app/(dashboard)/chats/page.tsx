@@ -12,8 +12,8 @@ interface Message {
   direction: 'inbound' | 'outbound'
   content: string
   messageType: string
-  sentAt: Date
-  readAt?: Date
+  sentAt: string
+  readAt?: string
 }
 
 interface Conversation {
