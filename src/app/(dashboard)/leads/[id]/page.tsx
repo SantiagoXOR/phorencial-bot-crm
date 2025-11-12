@@ -35,6 +35,8 @@ interface Lead {
   createdAt: string
   updatedAt: string
   events: Event[]
+  tags?: string | string[]
+  manychatId?: string
 }
 
 interface Event {
