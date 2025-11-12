@@ -18,12 +18,12 @@ interface User {
 }
 
 interface Permission {
-  id: string
-  user_id: string
+  id?: string
+  user_id?: string
   resource: string
   action: string
   granted: boolean
-  created_at: string
+  created_at?: string
 }
 
 export default function PermissionsPage() {
