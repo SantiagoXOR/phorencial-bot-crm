@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next/auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { checkUserPermission } from '@/lib/rbac'
 
@@ -180,4 +180,3 @@ function formatCellValue(value: any): string {
   if (typeof value === 'boolean') return value ? 'Sí' : 'No'
   return String(value)
 }
-
