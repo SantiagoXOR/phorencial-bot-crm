@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { BarChart3 } from 'lucide-react'
+import { BarChart3, Filter } from 'lucide-react'
 
 interface ReportConfig {
   name: string

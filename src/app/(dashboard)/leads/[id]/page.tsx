@@ -57,6 +57,9 @@ export default function LeadDetailPage() {
   const [loading, setLoading] = useState(true)
   const [scoring, setScoring] = useState(false)
   const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null)
+  
+  // Hook debe estar al principio, antes de cualquier return condicional
+  const { isSynced, syncNow, syncStatus } = useManychatSync(params.id as string)
 
   const fetchLead = async () => {
     try {
@@ -127,8 +130,6 @@ export default function LeadDetailPage() {
       </Badge>
     )
   }
-
-  const { isSynced, syncNow, syncStatus } = useManychatSync(lead.id)
   
   // Parsear tags si existen
   let leadTags: string[] = []
