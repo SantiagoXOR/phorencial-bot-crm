@@ -132,7 +132,7 @@ export default function ChatsPage() {
               direction: 'outbound' as const,
               content: message,
               messageType,
-              sentAt: new Date(),
+              sentAt: new Date().toISOString(),
               readAt: undefined
             }
           ]
