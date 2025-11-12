@@ -90,19 +90,23 @@ export default function ChatsPage() {
     setFilters(prev => ({ ...prev, search: value }))
   }
 
-  const handleSelectConversation = async (conversation: Conversation) => {
+  const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation)
     
-    // Cargar mensajes completos de la conversación
-    try {
-      const response = await fetch(`/api/conversations/${conversation.id}`)
-      if (response.ok) {
-        const data = await response.json()
+    // Cargar mensajes completos de la conversación en segundo plano
+    fetch(`/api/conversations/${conversation.id}`)
+      .then(response => {
+        if (response.ok) {
+          return response.json()
+        }
+        throw new Error('Failed to fetch conversation')
+      })
+      .then(data => {
         setSelectedConversation(data.conversation)
-      }
-    } catch (error) {
-      console.error('Error fetching conversation details:', error)
-    }
+      })
+      .catch(error => {
+        console.error('Error fetching conversation details:', error)
+      })
   }
 
   const handleSendMessage = async (message: string, messageType: string = 'text', mediaUrl?: string) => {

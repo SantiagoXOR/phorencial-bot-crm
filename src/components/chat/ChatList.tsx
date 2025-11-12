@@ -13,6 +13,7 @@ interface Conversation {
   platform: string
   status: string
   lastMessageAt: string
+  createdAt: string
   lead?: {
     id: string
     nombre: string
