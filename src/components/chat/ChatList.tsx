@@ -7,27 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Search, MessageSquare, MoreHorizontal, Phone, Camera } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-interface Conversation {
-  id: string
-  platform: string
-  status: string
-  lastMessageAt: string
-  createdAt: string
-  lead?: {
-    id: string
-    nombre: string
-    telefono: string
-    email?: string
-  }
-  messages: Array<{
-    id: string
-    direction: 'inbound' | 'outbound'
-    content: string
-    messageType: string
-    sentAt: string
-  }>
-}
+import type { Conversation } from '@/types/chat'
 
 interface ChatListProps {
   conversations: Conversation[]

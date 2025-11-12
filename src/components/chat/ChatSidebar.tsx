@@ -25,32 +25,7 @@ import {
   Bot
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-interface Conversation {
-  id: string
-  platform: string
-  status: string
-  assignedTo?: string
-  createdAt: string
-  lastMessageAt: string
-  lead?: {
-    id: string
-    nombre: string
-    telefono: string
-    email?: string
-    manychatId?: string
-    tags?: string[]
-  }
-  assignedUser?: {
-    id: string
-    nombre: string
-    email: string
-  }
-  manychatData?: {
-    flowName?: string
-    botActive?: boolean
-  }
-}
+import type { Conversation } from '@/types/chat'
 
 interface ChatSidebarProps {
   conversation?: Conversation

@@ -10,38 +10,7 @@ import { ManychatFlowIndicator } from '@/components/manychat/ManychatFlowIndicat
 import { TagPill } from '@/components/manychat/TagPill'
 import { Send, Paperclip, Smile, MoreVertical, Tag } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-interface Message {
-  id: string
-  direction: 'inbound' | 'outbound'
-  content: string
-  messageType: string
-  sentAt: Date
-  readAt?: Date
-  isFromBot?: boolean
-  manychatFlowId?: string
-}
-
-interface Conversation {
-  id: string
-  platform: string
-  status: string
-  lead?: {
-    id: string
-    nombre: string
-    telefono: string
-    email?: string
-    manychatId?: string
-    tags?: string[]
-  }
-  messages: Message[]
-  manychatData?: {
-    flowNs?: string
-    flowName?: string
-    stepNs?: string
-    botActive?: boolean
-  }
-}
+import type { Conversation, Message } from '@/types/chat'
 
 interface ChatWindowProps {
   conversation?: Conversation

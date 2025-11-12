@@ -5,37 +5,7 @@ import { Header } from '@/components/layout/Header'
 import { ChatList } from '@/components/chat/ChatList'
 import { ChatWindow } from '@/components/chat/ChatWindow'
 import { ChatSidebar } from '@/components/chat/ChatSidebar'
-import { cn } from '@/lib/utils'
-
-interface Message {
-  id: string
-  direction: 'inbound' | 'outbound'
-  content: string
-  messageType: string
-  sentAt: string
-  readAt?: string
-}
-
-interface Conversation {
-  id: string
-  platform: string
-  status: string
-  assignedTo?: string
-  lastMessageAt: string
-  createdAt: string
-  lead?: {
-    id: string
-    nombre: string
-    telefono: string
-    email?: string
-  }
-  assignedUser?: {
-    id: string
-    nombre: string
-    email: string
-  }
-  messages: Message[]
-}
+import type { Conversation } from '@/types/chat'
 
 export default function ChatsPage() {
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -356,7 +326,7 @@ function getMockConversations(): Conversation[] {
           direction: 'inbound',
           content: 'Hola, me interesa saber sobre los créditos para motos',
           messageType: 'text',
-          sentAt: new Date(Date.now() - 1000 * 60 * 30)
+          sentAt: new Date(Date.now() - 1000 * 60 * 30).toISOString()
         }
       ]
     },
@@ -383,7 +353,7 @@ function getMockConversations(): Conversation[] {
           direction: 'inbound',
           content: 'Muchas gracias! He recibido la información',
           messageType: 'text',
-          sentAt: new Date(Date.now() - 1000 * 60 * 60)
+          sentAt: new Date(Date.now() - 1000 * 60 * 60).toISOString()
         }
       ]
     },
@@ -404,7 +374,7 @@ function getMockConversations(): Conversation[] {
           direction: 'inbound',
           content: 'He elevado tu consulta al departamento correspondiente',
           messageType: 'text',
-          sentAt: new Date(Date.now() - 1000 * 60 * 60 * 2)
+          sentAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString()
         }
       ]
     }

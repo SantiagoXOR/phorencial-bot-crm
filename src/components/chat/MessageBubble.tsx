@@ -4,18 +4,10 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { MessageTypeIndicator } from '@/components/manychat/MessageTypeIndicator'
+import type { Message } from '@/types/chat'
 
 interface MessageBubbleProps {
-  message: {
-    id: string
-    direction: 'inbound' | 'outbound'
-    content: string
-    messageType: string
-    sentAt: Date
-    readAt?: Date
-    isFromBot?: boolean
-    manychatFlowId?: string
-  }
+  message: Message
   className?: string
 }
 
@@ -24,8 +16,8 @@ export function MessageBubble({ message, className }: MessageBubbleProps) {
   const isRead = !!message.readAt
   const isFromBot = message.isFromBot || false
 
-  const formatTime = (date: Date) => {
-    return format(new Date(date), 'HH:mm', { locale: es })
+  const formatTime = (dateString: string) => {
+    return format(new Date(dateString), 'HH:mm', { locale: es })
   }
 
   const getMessageIcon = () => {
