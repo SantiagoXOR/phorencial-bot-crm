@@ -15,6 +15,7 @@ interface HeaderProps {
   newButtonHref?: string
   onExport?: () => void
   className?: string
+  actions?: React.ReactNode
 }
 
 export function Header({
@@ -26,7 +27,8 @@ export function Header({
   newButtonText = "Nuevo",
   newButtonHref = "#",
   onExport,
-  className
+  className,
+  actions
 }: HeaderProps) {
   const { data: session } = useSession()
 
@@ -93,29 +95,35 @@ export function Header({
 
           {/* Botones de acción */}
           <div className="flex items-center space-x-2">
-            {showExportButton && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-gray-700 border-gray-300 hover:bg-gray-50"
-                onClick={onExport}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Exportar
-              </Button>
-            )}
+            {actions ? (
+              actions
+            ) : (
+              <>
+                {showExportButton && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-gray-700 border-gray-300 hover:bg-gray-50"
+                    onClick={onExport}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar
+                  </Button>
+                )}
 
-            {showNewButton && (
-              <Button
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-                size="sm"
-                asChild
-              >
-                <a href={newButtonHref}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  {newButtonText}
-                </a>
-              </Button>
+                {showNewButton && (
+                  <Button
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    size="sm"
+                    asChild
+                  >
+                    <a href={newButtonHref}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      {newButtonText}
+                    </a>
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
