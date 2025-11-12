@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { whatsappService } from '@/server/services/whatsapp-service'
 import { EventRepository } from '@/server/repositories/event-repository'

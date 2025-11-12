@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { supabaseLeadService } from '@/server/services/supabase-lead-service'
 import { LeadCreateSchema, LeadQuerySchema } from '@/lib/validators'
@@ -302,12 +302,25 @@ async function getHandler(
   context: { query?: any }
 ) {
   try {
+    logger.info('🔍 GET /api/leads - Iniciando request', {
+      url: request.url,
+      method: request.method
+    })
+
     const session = await getServerSession(authOptions)
+
+    logger.info('🔐 Sesión obtenida', {
+      hasSession: !!session,
+      userId: session?.user?.id,
+      userEmail: session?.user?.email,
+      userRole: session?.user?.role
+    })
 
     // Permitir acceso sin autenticación en modo testing
     const isTestingMode = process.env.TESTING_MODE === 'true'
 
     if (!session && !isTestingMode) {
+      logger.warn('❌ Acceso denegado: Sin sesión')
       return NextResponse.json({
         error: 'Unauthorized',
         message: 'Debe iniciar sesión para ver los leads'
@@ -316,14 +329,34 @@ async function getHandler(
 
     // Verificar permisos granulares si hay sesión
     if (session) {
+      logger.info('🔑 Verificando permisos de lectura de leads para usuario', {
+        userId: session.user.id,
+        email: session.user.email,
+        role: session.user.role
+      })
+
       const hasReadPermission = await checkUserPermission(session.user.id, 'leads', 'read')
       
+      logger.info(`${hasReadPermission ? '✅' : '❌'} Resultado verificación permisos`, {
+        hasReadPermission,
+        userId: session.user.id,
+        role: session.user.role
+      })
+
       if (!hasReadPermission) {
+        logger.error('🚫 Acceso denegado: Sin permisos de lectura', {
+          userId: session.user.id,
+          email: session.user.email,
+          role: session.user.role,
+          requiredPermission: 'leads:read'
+        })
         return NextResponse.json({
           error: 'Forbidden',
           message: 'No tiene permisos para ver los leads'
         }, { status: 403 })
       }
+
+      logger.info('✅ Permisos verificados correctamente')
     }
 
     // Los query params ya están validados por el middleware

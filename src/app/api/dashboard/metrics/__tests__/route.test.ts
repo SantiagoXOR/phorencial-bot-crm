@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 import { GET } from '../route'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { setupSupabaseFetchMocks, createMockFetchResponse, mockLeads } from '@/__tests__/mocks/supabase'
 
 // Mock NextAuth

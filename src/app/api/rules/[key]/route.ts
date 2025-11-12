@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { RuleRepository } from '@/server/repositories/rule-repository'
 import { checkPermission } from '@/lib/rbac'

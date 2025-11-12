@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { POST, GET } from '../route'
 import { SupabaseLeadService } from '@/server/services/supabase-lead-service'
 import { hasPermission } from '@/lib/rbac'
