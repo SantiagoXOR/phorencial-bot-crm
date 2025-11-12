@@ -22,7 +22,7 @@ interface Conversation {
   }
   messages: Array<{
     id: string
-    direction: string
+    direction: 'inbound' | 'outbound'
     content: string
     messageType: string
     sentAt: string
