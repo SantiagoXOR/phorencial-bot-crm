@@ -7,6 +7,7 @@
     "dev:clean": "node scripts/dev-clean.js",
     "dev:ws": "node scripts/start-websocket-server.js",
     "dev:full": "concurrently \"npm run dev\" \"npm run dev:ws\"",
+    "postinstall": "prisma generate",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
