@@ -9,6 +9,7 @@ import { Workflow, ExternalLink, Users, TrendingUp, Settings } from 'lucide-reac
 import Link from 'next/link'
 import { ManychatConnectionStatus } from '@/components/manychat/ManychatConnectionStatus'
 import { ManychatBroadcastPanel } from '@/components/manychat/ManychatBroadcastPanel'
+import { cn } from '@/lib/utils'
 
 interface Flow {
   id: number
