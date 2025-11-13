@@ -38,6 +38,10 @@ export class SupabaseStorageService {
    */
   static async initializeBucket() {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data: buckets, error } = await supabase.client.storage.listBuckets()
       
       if (error) throw error
@@ -79,6 +83,10 @@ export class SupabaseStorageService {
    */
   static async uploadFile(params: UploadFileParams, userId: string): Promise<DocumentMetadata> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       // Validar tamaño del archivo
       if (params.file.size > this.MAX_FILE_SIZE) {
         throw new Error(`File size exceeds maximum allowed (${this.MAX_FILE_SIZE / 1024 / 1024}MB)`)
@@ -145,6 +153,10 @@ export class SupabaseStorageService {
    */
   static async getLeadDocuments(leadId: string): Promise<DocumentMetadata[]> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data, error } = await supabase.client
         .from('documents')
         .select('*')
@@ -165,6 +177,10 @@ export class SupabaseStorageService {
    */
   static async getDocument(documentId: string): Promise<DocumentMetadata | null> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data, error } = await supabase.client
         .from('documents')
         .select('*')
@@ -188,6 +204,10 @@ export class SupabaseStorageService {
    */
   static async deleteDocument(documentId: string): Promise<boolean> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       // Obtener metadata
       const document = await this.getDocument(documentId)
       if (!document) {
@@ -224,6 +244,10 @@ export class SupabaseStorageService {
    */
   private static async deleteFile(path: string): Promise<void> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       await supabase.client.storage
         .from(this.BUCKET_NAME)
         .remove([path])
@@ -237,6 +261,10 @@ export class SupabaseStorageService {
    */
   static async getSignedUrl(storagePath: string, expiresIn: number = 3600): Promise<string | null> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data, error } = await supabase.client.storage
         .from(this.BUCKET_NAME)
         .createSignedUrl(storagePath, expiresIn)
@@ -258,6 +286,10 @@ export class SupabaseStorageService {
     updates: Partial<Pick<DocumentMetadata, 'description' | 'category'>>
   ): Promise<DocumentMetadata> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data, error } = await supabase.client
         .from('documents')
         .update(updates)
@@ -286,6 +318,10 @@ export class SupabaseStorageService {
     limit?: number
   }): Promise<{ data: DocumentMetadata[]; total: number }> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const page = filters.page || 1
       const limit = filters.limit || 50
       const offset = (page - 1) * limit
@@ -335,6 +371,10 @@ export class SupabaseStorageService {
     byCategory: Record<DocumentCategory, number>
   }> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       let query = supabase.client
         .from('documents')
         .select('category, file_size')

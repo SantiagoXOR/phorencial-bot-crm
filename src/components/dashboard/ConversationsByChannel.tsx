@@ -51,7 +51,7 @@ export function ConversationsByChannel({
                 height={36}
                 formatter={(value, entry) => (
                   <span style={{ color: entry.color, fontSize: '12px' }}>
-                    {value} - {entry.payload.value}%
+                    {value} - {entry.payload?.value || 0}%
                   </span>
                 )}
               />

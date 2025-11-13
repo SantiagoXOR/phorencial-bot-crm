@@ -46,6 +46,10 @@ export async function POST(request: NextRequest) {
 
     const config: ReportConfig = await request.json()
 
+    if (!supabase.client) {
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 })
+    }
+
     // Construir query base
     let query = supabase.client.from('"Lead"').select('*')
 
@@ -108,7 +112,7 @@ export async function POST(request: NextRequest) {
       }
     } else if (config.type === 'pipeline') {
       // Obtener datos del pipeline
-      const { data: pipelines, error: pipelineError } = await supabase.client
+      const { data: pipelines, error: pipelineError } = await supabase.client!
         .from('lead_pipeline')
         .select('*')
 

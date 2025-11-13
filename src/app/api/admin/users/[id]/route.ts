@@ -26,8 +26,8 @@ export async function GET(
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
     }
 
-    // Remover password_hash de la respuesta
-    const { password_hash, ...userResponse } = user
+    // Remover hash de la respuesta
+    const { hash, ...userResponse } = user
 
     return NextResponse.json(userResponse)
 
@@ -115,7 +115,7 @@ export async function PATCH(
       }
 
       // No permitir que un usuario se quite el rol ADMIN a sí mismo
-      if (existingUser.role === 'ADMIN' && role !== 'ADMIN' && existingUser.id === session.user.id) {
+      if (existingUser.rol === 'ADMIN' && role !== 'ADMIN' && existingUser.id === session.user.id) {
         return NextResponse.json({ 
           error: 'No puedes quitarte el rol de administrador a ti mismo' 
         }, { status: 400 })
@@ -199,7 +199,7 @@ export async function DELETE(
     }
 
     // No permitir eliminar usuarios ADMIN
-    if (existingUser.role === 'ADMIN') {
+    if (existingUser.rol === 'ADMIN') {
       return NextResponse.json({ 
         error: 'No se pueden eliminar usuarios administradores' 
       }, { status: 400 })

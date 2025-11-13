@@ -298,6 +298,10 @@ export class WhatsAppService {
     platformMsgId?: string
   }) {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data: message, error } = await supabase.client
         .from('messages')
         .insert({
@@ -337,6 +341,10 @@ export class WhatsAppService {
    */
   static async markAsRead(messageId: string) {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       // Actualizar en la base de datos
       const { error } = await supabase.client
         .from('messages')
@@ -364,6 +372,10 @@ export class WhatsAppService {
    */
   static async getConversationHistory(conversationId: string) {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data: messages, error } = await supabase.client
         .from('messages')
         .select('*')

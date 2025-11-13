@@ -42,6 +42,10 @@ export class ConversationService {
    */
   static async createConversation(data: CreateConversationData) {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data: conversation, error } = await supabase.client
         .from('conversations')
         .insert({
@@ -72,6 +76,10 @@ export class ConversationService {
    */
   static async getConversationById(id: string): Promise<ConversationWithDetails | null> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data: conversation, error } = await supabase.client
         .from('conversations')
         .select(`
@@ -96,8 +104,12 @@ export class ConversationService {
 
       if (messagesError) throw messagesError
 
+      if (!conversation) {
+        throw new Error('Conversation not found')
+      }
+
       return {
-        ...conversation,
+        ...(conversation as any),
         messages: messages || []
       }
     } catch (error) {
@@ -119,6 +131,10 @@ export class ConversationService {
     limit?: number
   }) {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const page = filters.page || 1
       const limit = filters.limit || 50
       const offset = (page - 1) * limit
@@ -200,6 +216,10 @@ export class ConversationService {
    */
   static async assignConversation(conversationId: string, userId: string) {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data: conversation, error } = await supabase.client
         .from('conversations')
         .update({
@@ -228,6 +248,10 @@ export class ConversationService {
    */
   static async closeConversation(conversationId: string) {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data: conversation, error } = await supabase.client
         .from('conversations')
         .update({
@@ -252,6 +276,10 @@ export class ConversationService {
    */
   static async findConversationByPlatform(platform: string, platformId: string) {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data: conversation, error } = await supabase.client
         .from('conversations')
         .select(`
@@ -279,6 +307,10 @@ export class ConversationService {
    */
   static async updateLastActivity(conversationId: string) {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { error } = await supabase.client
         .from('conversations')
         .update({

@@ -214,7 +214,15 @@ async function handleMessageReceived(event: ManychatWebhookEvent) {
   const message = event.data.message
 
   // Sincronizar subscriber si no existe en CRM
-  let lead = await supabase.findLeadByManychatId(String(subscriber.id))
+  let lead = null
+  if (supabase.client) {
+    const { data } = await supabase.client
+      .from('"Lead"')
+      .select('*')
+      .eq('manychatId', String(subscriber.id))
+      .single()
+    lead = data
+  }
 
   if (!lead) {
     const leadId = await ManychatSyncService.syncManychatToLead(subscriber)
@@ -264,7 +272,15 @@ async function handleTagAdded(event: ManychatWebhookEvent) {
   const tag = event.data.tag
 
   // Buscar lead por manychatId
-  const lead = await supabase.findLeadByManychatId(String(subscriber.id))
+  let lead = null
+  if (supabase.client) {
+    const { data } = await supabase.client
+      .from('"Lead"')
+      .select('*')
+      .eq('manychatId', String(subscriber.id))
+      .single()
+    lead = data
+  }
 
   if (!lead) return
 
@@ -293,7 +309,15 @@ async function handleTagRemoved(event: ManychatWebhookEvent) {
   const tag = event.data.tag
 
   // Buscar lead por manychatId
-  const lead = await supabase.findLeadByManychatId(String(subscriber.id))
+  let lead = null
+  if (supabase.client) {
+    const { data } = await supabase.client
+      .from('"Lead"')
+      .select('*')
+      .eq('manychatId', String(subscriber.id))
+      .single()
+    lead = data
+  }
 
   if (!lead) return
 
@@ -320,7 +344,15 @@ async function handleCustomFieldChanged(event: ManychatWebhookEvent) {
   const customField = event.data.custom_field
 
   // Buscar lead por manychatId
-  const lead = await supabase.findLeadByManychatId(String(subscriber.id))
+  let lead = null
+  if (supabase.client) {
+    const { data } = await supabase.client
+      .from('"Lead"')
+      .select('*')
+      .eq('manychatId', String(subscriber.id))
+      .single()
+    lead = data
+  }
 
   if (!lead) return
 

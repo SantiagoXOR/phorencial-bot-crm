@@ -64,7 +64,7 @@ export default function ManychatSettingsPage() {
     addToast({
       title: 'Copiado',
       description: `${label} copiado al portapapeles`,
-      variant: 'success',
+      type: 'success',
     })
   }
 

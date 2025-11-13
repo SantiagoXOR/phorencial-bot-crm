@@ -28,9 +28,11 @@ export default function MetaPixel({ pixelId }: MetaPixelProps) {
 
     // Inicializar el pixel solo una vez
     if (typeof window !== 'undefined' && !window.fbq) {
-      // @ts-ignore
-      !(function (f, b, e, v, n, t, s) {
+      // @ts-ignore - Facebook Pixel código inline
+      // eslint-disable-next-line
+      !(function (f: any, b: any, e: any, v: any, n: any, t: any, s: any) {
         if (f.fbq) return
+        // @ts-ignore
         n = f.fbq = function () {
           n.callMethod
             ? n.callMethod.apply(n, arguments)

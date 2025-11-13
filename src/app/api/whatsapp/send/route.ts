@@ -134,22 +134,12 @@ export async function POST(request: NextRequest) {
       }, { status: 503 })
     }
 
-    let result
-    
-    // Enviar mensaje según el tipo
-    if (validatedData.tipo === 'template' && validatedData.templateName) {
-      result = await whatsappService.sendTemplateMessage(
-        validatedData.telefono,
-        validatedData.templateName,
-        'es',
-        validatedData.templateParams || []
-      )
-    } else {
-      result = await whatsappService.sendTextMessage(
-        validatedData.telefono,
-        validatedData.mensaje
-      )
-    }
+    // Enviar mensaje
+    const result = await whatsappService.sendMessage({
+      to: validatedData.telefono,
+      message: validatedData.mensaje,
+      messageType: 'text'
+    })
 
     if (!result) {
       return NextResponse.json({ 
@@ -164,10 +154,8 @@ export async function POST(request: NextRequest) {
       payload: {
         mensaje: validatedData.mensaje,
         telefono: validatedData.telefono,
-        messageId: result.messages?.[0]?.id,
+        messageId: result.messageId,
         tipo: validatedData.tipo,
-        templateName: validatedData.templateName,
-        templateParams: validatedData.templateParams,
         sentBy: session.user.id,
         sentAt: new Date().toISOString()
       }
@@ -176,14 +164,14 @@ export async function POST(request: NextRequest) {
     logger.info('WhatsApp message sent from CRM', {
       leadId: validatedData.leadId,
       telefono: validatedData.telefono,
-      messageId: result.messages?.[0]?.id,
+      messageId: result.messageId,
       sentBy: session.user.id
     })
 
     return NextResponse.json({
       success: true,
-      messageId: result.messages?.[0]?.id,
-      contact: result.contacts?.[0]
+      messageId: result.messageId,
+      provider: result.provider
     })
 
   } catch (error: any) {
@@ -218,8 +206,6 @@ export async function GET(request: NextRequest) {
     }
 
     checkPermission(session.user.role, 'leads:read')
-
-    const config = whatsappService.getConfig()
     
     // Templates predefinidos (en producción estos vendrían de la API de Meta)
     const templates = [
@@ -256,7 +242,9 @@ export async function GET(request: NextRequest) {
     ]
 
     return NextResponse.json({
-      config,
+      config: {
+        configured: whatsappService.isConfigured()
+      },
       templates
     })
 

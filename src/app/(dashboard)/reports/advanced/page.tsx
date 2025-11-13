@@ -246,7 +246,7 @@ export default function AdvancedReportsPage() {
               <div className="lg:col-span-1">
                 <ReportBuilder
                   config={reportConfig}
-                  onChange={setReportConfig}
+                  onChange={(config) => setReportConfig(config)}
                   onGenerate={handleGenerateReport}
                   generating={generating}
                 />

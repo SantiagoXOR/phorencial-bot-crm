@@ -47,7 +47,7 @@ export function ManychatTagManager({
       addToast({
         title: 'Tag agregado',
         description: `El tag "${tagName}" fue agregado exitosamente`,
-        variant: 'success',
+        type: 'success',
       })
       onTagsChange?.([...leadTags, tagName])
       setSearchQuery('')
@@ -56,7 +56,7 @@ export function ManychatTagManager({
       addToast({
         title: 'Error al agregar tag',
         description: error instanceof Error ? error.message : 'Error desconocido',
-        variant: 'destructive',
+        type: 'error',
       })
     } finally {
       setIsAdding(false)
@@ -69,14 +69,14 @@ export function ManychatTagManager({
       addToast({
         title: 'Tag removido',
         description: `El tag "${tagName}" fue removido exitosamente`,
-        variant: 'success',
+        type: 'success',
       })
       onTagsChange?.(leadTags.filter(t => t !== tagName))
     } catch (error) {
       addToast({
         title: 'Error al remover tag',
         description: error instanceof Error ? error.message : 'Error desconocido',
-        variant: 'destructive',
+        type: 'error',
       })
     }
   }

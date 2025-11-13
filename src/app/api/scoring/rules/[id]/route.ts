@@ -31,6 +31,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const body = await request.json()
     const { name, description, field, operator, value, score_points, is_active, priority } = body
 
+    if (!supabase.client) {
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 })
+    }
+
     const { data: rule, error } = await supabase.client
       .from('scoring_rules')
       .update({
@@ -77,6 +81,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }, { status: 403 })
     }
 
+    if (!supabase.client) {
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 })
+    }
+
     const body = await request.json()
 
     const { data: rule, error } = await supabase.client
@@ -117,6 +125,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         error: 'Forbidden',
         message: 'Solo administradores pueden eliminar reglas'
       }, { status: 403 })
+    }
+
+    if (!supabase.client) {
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 })
     }
 
     const { error } = await supabase.client

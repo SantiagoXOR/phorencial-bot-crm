@@ -3,6 +3,8 @@
  * Reemplaza Prisma para operaciones de base de datos
  */
 
+import { createClient } from '@supabase/supabase-js'
+
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -397,9 +399,15 @@ const globalForSupabase = globalThis as unknown as {
   supabase: SupabaseClient | undefined
 }
 
-export const supabase =
-  globalForSupabase.supabase ??
-  new SupabaseClient()
+// Cliente oficial de Supabase para operaciones que lo requieran
+export const supabaseClient = SUPABASE_URL && SERVICE_ROLE_KEY
+  ? createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+  : null
+
+export const supabase = Object.assign(
+  globalForSupabase.supabase ?? new SupabaseClient(),
+  { client: supabaseClient }
+)
 
 if (process.env.NODE_ENV !== 'production') globalForSupabase.supabase = supabase
 

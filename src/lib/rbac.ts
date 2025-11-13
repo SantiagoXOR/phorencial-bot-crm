@@ -132,8 +132,13 @@ export function canAccessRoute(userRole: UserRole, route: string): boolean {
 }
 
 /**
- * Verificar permiso granular consultando la base de datos
- * Combina permisos del rol con permisos personalizados del usuario
+ * Verificar permiso basado en el rol del usuario
+ * Simplificado para usar solo permisos por rol sin consultar la base de datos
+ * 
+ * @param userId - ID del usuario
+ * @param resource - Recurso (ej: 'leads', 'reports')
+ * @param action - Acción (ej: 'read', 'write')
+ * @returns true si el usuario tiene el permiso
  */
 export async function checkUserPermission(
   userId: string,
@@ -141,38 +146,34 @@ export async function checkUserPermission(
   action: string
 ): Promise<boolean> {
   try {
+    console.log(`🔍 Verificando permiso: userId=${userId}, resource=${resource}, action=${action}`)
+    
     // Importación dinámica para evitar problemas de dependencias circulares
     const { supabase } = await import('@/lib/db')
     
     // Obtener rol del usuario
     const user = await supabase.findUserById(userId)
-    if (!user) return false
-
-    // Verificar permiso del rol
-    const rolePermission = `${resource}:${action}` as Permission
-    const hasRolePermission = hasPermission(user.role as UserRole, rolePermission)
-
-    // Si el rol ya tiene el permiso, retornar true
-    if (hasRolePermission) return true
-
-    // Verificar permiso granular en la base de datos
-    const { data: customPermissions, error } = await supabase.client
-      .from('user_permissions')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('resource', resource)
-      .eq('action', action)
-      .eq('granted', true)
-      .single()
-
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error checking user permission:', error)
+    if (!user) {
+      console.warn(`⚠️ Usuario no encontrado: ${userId}`)
       return false
     }
 
-    return !!customPermissions
+    console.log(`👤 Usuario encontrado: ${user.email}, rol: ${user.rol}`)
+
+    // Verificar permiso del rol
+    const rolePermission = `${resource}:${action}` as Permission
+    const hasRolePermission = hasPermission(user.rol as UserRole, rolePermission)
+
+    console.log(`${hasRolePermission ? '✅' : '❌'} Permiso ${rolePermission}: ${hasRolePermission}`)
+
+    return hasRolePermission
+    
+    // NOTA: Sistema de permisos granulares deshabilitado temporalmente
+    // Las tablas 'permissions', 'role_permissions' no existen en la base de datos
+    // Para habilitar permisos granulares, ejecutar: scripts/users-roles-schema.sql
+    
   } catch (error) {
-    console.error('Error in checkUserPermission:', error)
+    console.error('❌ Error in checkUserPermission:', error)
     return false
   }
 }

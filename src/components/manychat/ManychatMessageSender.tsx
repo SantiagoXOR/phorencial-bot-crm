@@ -102,7 +102,7 @@ export default function ManychatMessageSender({
       addToast({
         title: 'Mensaje enviado',
         description: `Mensaje enviado a ${telefono} ${isManychatConfigured ? 'vía Manychat' : ''}`,
-        variant: 'success',
+        type: 'success',
       })
 
       if (onMessageSent && result.messageId) {
@@ -117,7 +117,7 @@ export default function ManychatMessageSender({
       addToast({
         title: 'Error al enviar mensaje',
         description: errorMessage,
-        variant: 'destructive',
+        type: 'error',
       })
     } finally {
       setLoading(false)

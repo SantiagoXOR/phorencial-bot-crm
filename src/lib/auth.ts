@@ -53,7 +53,8 @@ export const authOptions: NextAuthOptions = {
                 apellido: '',
                 role: oldUser.rol,
                 status: 'ACTIVE', // Asumir activo para usuarios existentes
-                hash: oldUser.hash
+                hash: oldUser.hash,
+                createdAt: oldUser.createdAt
               }
             }
           }

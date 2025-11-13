@@ -124,7 +124,7 @@ export function ManychatCustomFields({ leadId, manychatId }: ManychatCustomField
       addToast({
         title: 'Lead no sincronizado',
         description: 'El lead debe estar sincronizado con Manychat primero',
-        variant: 'destructive',
+        type: 'error',
       })
       return
     }
@@ -148,7 +148,7 @@ export function ManychatCustomFields({ leadId, manychatId }: ManychatCustomField
         addToast({
           title: 'Campos sincronizados',
           description: 'Los custom fields se sincronizaron correctamente',
-          variant: 'success',
+          type: 'success',
         })
         await fetchLeadAndFields()
       } else {
@@ -158,7 +158,7 @@ export function ManychatCustomFields({ leadId, manychatId }: ManychatCustomField
       addToast({
         title: 'Error',
         description: 'No se pudieron sincronizar los campos',
-        variant: 'destructive',
+        type: 'error',
       })
     } finally {
       setSyncing(false)
@@ -189,7 +189,7 @@ export function ManychatCustomFields({ leadId, manychatId }: ManychatCustomField
         addToast({
           title: 'Campo actualizado',
           description: `${fieldName} se actualizó correctamente`,
-          variant: 'success',
+          type: 'success',
         })
         setEditingField(null)
         await fetchLeadAndFields()
@@ -198,7 +198,7 @@ export function ManychatCustomFields({ leadId, manychatId }: ManychatCustomField
       addToast({
         title: 'Error',
         description: 'No se pudo actualizar el campo',
-        variant: 'destructive',
+        type: 'error',
       })
     }
   }

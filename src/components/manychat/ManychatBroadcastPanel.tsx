@@ -70,7 +70,7 @@ export function ManychatBroadcastPanel({ onBroadcastSent, className }: ManychatB
       addToast({
         title: 'Campos requeridos',
         description: 'Debes completar el nombre y el mensaje',
-        variant: 'destructive',
+        type: 'error',
       })
       return
     }
@@ -79,7 +79,7 @@ export function ManychatBroadcastPanel({ onBroadcastSent, className }: ManychatB
       addToast({
         title: 'Selecciona tags',
         description: 'Debes seleccionar al menos un tag',
-        variant: 'destructive',
+        type: 'error',
       })
       return
     }
@@ -88,7 +88,7 @@ export function ManychatBroadcastPanel({ onBroadcastSent, className }: ManychatB
       addToast({
         title: 'Especifica leads',
         description: 'Debes especificar IDs de leads',
-        variant: 'destructive',
+        type: 'error',
       })
       return
     }
@@ -122,7 +122,7 @@ export function ManychatBroadcastPanel({ onBroadcastSent, className }: ManychatB
       addToast({
         title: 'Broadcast enviado',
         description: `El broadcast "${broadcast.name}" se envió exitosamente`,
-        variant: 'success',
+        type: 'success',
       })
 
       // Limpiar formulario
@@ -144,7 +144,7 @@ export function ManychatBroadcastPanel({ onBroadcastSent, className }: ManychatB
       addToast({
         title: 'Error al enviar broadcast',
         description: error instanceof Error ? error.message : 'Error desconocido',
-        variant: 'destructive',
+        type: 'error',
       })
     } finally {
       setSending(false)

@@ -47,6 +47,10 @@ export class ScoringService {
    */
   static async evaluateLead(leadId: string, leadData?: LeadData): Promise<ScoringResult> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       // Si no se proporciona leadData, obtenerlo de la base de datos
       if (!leadData) {
         leadData = await supabase.findLeadById(leadId)
@@ -213,6 +217,10 @@ export class ScoringService {
     scoreBreakdown: ScoringResult['score_breakdown']
   ): Promise<void> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { error } = await supabase.client
         .from('lead_scores')
         .insert({
@@ -234,6 +242,10 @@ export class ScoringService {
    */
   static async getLeadScore(leadId: string): Promise<ScoringResult | null> {
     try {
+      if (!supabase.client) {
+        throw new Error('Database connection error')
+      }
+
       const { data, error } = await supabase.client
         .from('lead_scores')
         .select('*')

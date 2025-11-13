@@ -26,6 +26,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    if (!supabase.client) {
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 })
+    }
+
     const { data: permissions, error } = await supabase.client
       .from('user_permissions')
       .select('*')
@@ -70,6 +74,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         { error: 'resource is required' },
         { status: 400 }
       )
+    }
+
+    if (!supabase.client) {
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 })
     }
 
     let query = supabase.client

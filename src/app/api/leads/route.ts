@@ -229,7 +229,7 @@ async function postHandler(
 
     // Evaluar scoring automáticamente
     try {
-      const scoringResult = await ScoringService.evaluateLead(lead.id, lead)
+      const scoringResult = await ScoringService.evaluateLead(lead.id!, lead as any)
       logger.info('Scoring evaluated automatically for new lead', { 
         leadId: lead.id,
         score: scoringResult.total_score,
@@ -245,7 +245,7 @@ async function postHandler(
         })
         
         // Actualizar estado del lead basado en scoring
-        await supabaseLeadService.updateLeadEstado(lead.id, scoringResult.recommendation)
+        await supabaseLeadService.updateLead(lead.id!, { estado: scoringResult.recommendation })
       }
     } catch (scoringError) {
       // Log error pero no fallar la creación del lead

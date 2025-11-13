@@ -10,7 +10,7 @@ import { BarChart3, Filter } from 'lucide-react'
 interface ReportConfig {
   name: string
   description: string
-  type: string
+  type: 'leads' | 'pipeline' | 'conversion' | 'custom'
   dateRange: {
     from: Date | null
     to: Date | null

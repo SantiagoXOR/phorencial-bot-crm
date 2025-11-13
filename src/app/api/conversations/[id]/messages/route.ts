@@ -68,7 +68,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       content: message,
       messageType,
       mediaUrl,
-      platformMsgId: whatsappResult.messages?.[0]?.id
+      platformMsgId: whatsappResult.messageId
     })
 
     // Actualizar última actividad

@@ -16,6 +16,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!supabase.client) {
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 })
+    }
+
     const { data: rules, error } = await supabase.client
       .from('scoring_rules')
       .select('*')
@@ -54,6 +58,10 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { name, description, field, operator, value, score_points, is_active, priority } = body
+
+    if (!supabase.client) {
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 })
+    }
 
     const { data: rule, error } = await supabase.client
       .from('scoring_rules')

@@ -12,7 +12,7 @@ interface ScoringRule {
   name: string
   description: string
   field: string
-  operator: string
+  operator: 'equals' | 'contains' | 'greater_than' | 'less_than' | 'between' | 'in_list'
   value: any
   score_points: number
   is_active: boolean

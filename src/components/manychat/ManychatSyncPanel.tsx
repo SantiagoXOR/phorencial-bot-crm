@@ -52,7 +52,7 @@ export function ManychatSyncPanel({ leadId, onSyncComplete }: ManychatSyncPanelP
       addToast({
         title: 'Sincronización exitosa',
         description: 'El lead ha sido sincronizado con Manychat',
-        variant: 'success',
+        type: 'success',
       })
       onSyncComplete?.()
     } catch (err) {
@@ -154,7 +154,7 @@ export function ManychatSyncPanel({ leadId, onSyncComplete }: ManychatSyncPanelP
         <div className="flex items-center justify-between pt-2 border-t">
           <SyncStatusIndicator
             status={syncStatus}
-            lastSyncAt={lastSyncAt}
+            lastSyncAt={lastSyncAt || undefined}
             error={error || undefined}
           />
           

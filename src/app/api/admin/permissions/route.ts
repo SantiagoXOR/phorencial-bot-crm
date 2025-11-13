@@ -20,6 +20,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden - Admin only' }, { status: 403 })
     }
 
+    if (!supabase.client) {
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 })
+    }
+
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
 
@@ -70,6 +74,10 @@ export async function POST(request: NextRequest) {
         { error: 'userId and permissions array are required' },
         { status: 400 }
       )
+    }
+
+    if (!supabase.client) {
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 })
     }
 
     // Eliminar permisos anteriores del usuario
@@ -163,6 +171,10 @@ export async function DELETE(request: NextRequest) {
         { error: 'userId is required' },
         { status: 400 }
       )
+    }
+
+    if (!supabase.client) {
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 })
     }
 
     const { error } = await supabase.client
